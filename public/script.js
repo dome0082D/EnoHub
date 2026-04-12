@@ -1,123 +1,75 @@
-// --- GESTIONE INTERFACCIA E MODALI ---
-function apriModale(id) {
-    document.getElementById(id).style.display = 'block';
-}
+// Gestione Finestre
+function apriModale(id) { document.getElementById(id).style.display = 'block'; }
+function chiudiModale(id) { document.getElementById(id).style.display = 'none'; }
 
-function chiudiModale(id) {
-    document.getElementById(id).style.display = 'none';
-}
+// Registrazione con controllo duplicati
+document.getElementById('reg-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const dati = {
+        tipo: document.getElementById('tipo').value,
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value,
+        pass: document.getElementById('pass').value,
+        tel: document.getElementById('tel').value,
+        qualifica: document.getElementById('qualifica').value,
+        bio: document.getElementById('bio').value
+    };
 
-// Chiude la modale se si clicca fuori dal riquadro
-window.onclick = function(event) {
-    if (event.target.className === 'modal') {
-        event.target.style.display = "none";
-    }
-}
-
-// --- LOGICA DI ISCRIZIONE E DATABASE (EnoHub B2B) ---
-const regForm = document.getElementById('reg-form');
-if(regForm) {
-    regForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const datiProfilo = {
-            tipo: document.getElementById('tipo').value,
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
-            pass: document.getElementById('pass').value,
-            tel: document.getElementById('tel').value,
-            qualifica: document.getElementById('qualifica').value,
-            spec: document.getElementById('spec').value,
-            bio: document.getElementById('bio').value,
-            dataIscrizione: new Date().toLocaleDateString()
-        };
-
-        // Invio al server (Render)
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datiProfilo)
-        });
-
-        const result = await response.json();
-        if(result.success) {
-            alert("Profilo creato con successo! Ora puoi interagire con il network.");
-            chiudiModale('modal-reg');
-            caricaUtenti(); // Aggiorna le liste in tempo reale
-        }
+    const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(dati)
     });
-}
 
-// --- CARICAMENTO E RICERCA UTENTI (VETRINA PROFESSIONALE) ---
+    const result = await res.json();
+    if(result.success) {
+        alert(result.message);
+        chiudiModale('modal-reg');
+        caricaUtenti();
+    } else {
+        alert("Errore: " + result.message);
+    }
+};
+
+// Caricamento Liste B2B
 async function caricaUtenti() {
     const res = await fetch('/api/utenti');
     const utenti = await res.json();
+    const cDiv = document.getElementById('lista-cantine');
+    const sDiv = document.getElementById('lista-sommelier');
     
-    const listaCantine = document.getElementById('lista-cantine');
-    const listaSommelier = document.getElementById('lista-sommelier');
-    
-    // Pulizia liste
-    listaCantine.innerHTML = '';
-    listaSommelier.innerHTML = '';
+    cDiv.innerHTML = ''; sDiv.innerHTML = '';
 
     utenti.forEach(u => {
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'profile-card';
         card.innerHTML = `
-            <strong>${u.nome}</strong><br>
-            <small>${u.spec || 'Generalista'}</small>
-            <button onclick="apriChat('${u.nome}')" style="margin-top:5px; padding:2px 5px; font-size:10px;">Contatta</button>
+            <h3>${u.nome}</h3>
+            <p><strong>${u.qualifica}</strong></p>
+            <p>${u.bio.substring(0, 50)}...</p>
+            <button onclick="apriChat('${u.nome}')">Contatta</button>
         `;
-        
-        if(u.tipo === 'cantina') {
-            listaCantine.appendChild(card);
-        } else {
-            listaSommelier.appendChild(card);
-        }
+        (u.tipo === 'cantina' ? cDiv : sDiv).appendChild(card);
     });
 }
 
-// --- FUNZIONE CERCA (REATTIVA) ---
-function cercaUtenti() {
-    let input = document.getElementById('search').value.toLowerCase();
-    let cards = document.getElementsByClassName('card');
-    
-    for (let i = 0; i < cards.length; i++) {
-        let txtValue = cards[i].textContent || cards[i].innerText;
-        cards[i].style.display = txtValue.toLowerCase().includes(input) ? "" : "none";
-    }
-}
-
-// --- SISTEMA CHAT E INVIO FILE ---
+// Chat e File
 function apriChat(nome) {
-    // Controllo se loggato (logica semplificata per prototipo)
     apriModale('modal-chat');
-    document.getElementById('chat-header').innerHTML = `<h3>Chat con ${nome}</h3>`;
+    document.getElementById('chat-target').innerText = "Conversazione con: " + nome;
 }
 
-function inviaMessaggio() {
-    const testo = document.getElementById('msg-testo').value;
-    const fileInput = document.getElementById('msg-file');
-    const box = document.getElementById('chat-messages');
+function inviaMsg() {
+    const txt = document.getElementById('chat-txt').value;
+    const file = document.getElementById('chat-file').files[0];
+    if(!txt && !file) return;
 
-    if (testo || fileInput.files.length > 0) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'msg sent';
-        
-        let contenuto = testo;
-        if(fileInput.files.length > 0) {
-            contenuto += `<br>📎 File allegato: ${fileInput.files[0].name}`;
-        }
-        
-        msgDiv.innerHTML = contenuto;
-        box.appendChild(msgDiv);
-        
-        // Reset
-        document.getElementById('msg-testo').value = '';
-        fileInput.value = '';
-        box.scrollTop = box.scrollHeight;
-    }
+    const msg = document.createElement('div');
+    msg.className = 'msg sent';
+    msg.innerHTML = (txt ? txt : "") + (file ? `<br><small>📄 ${file.name}</small>` : "");
+    document.getElementById('chat-msgs').appendChild(msg);
+    document.getElementById('chat-txt').value = '';
 }
 
-// Avvio automatico
+// Avvio
 caricaUtenti();
