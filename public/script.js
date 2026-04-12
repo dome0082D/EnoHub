@@ -1,75 +1,63 @@
-// Gestione Finestre
-function apriModale(id) { document.getElementById(id).style.display = 'block'; }
-function chiudiModale(id) { document.getElementById(id).style.display = 'none'; }
+// VARIABILI DI STATO (Il "Cervello" del sito)
+let utenteLoggato = JSON.parse(localStorage.getItem('user')) || null;
+let tuttiUtenti = [];
+let vistaCorrente = 'home';
 
-// Registrazione con controllo duplicati
-document.getElementById('reg-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const dati = {
-        tipo: document.getElementById('tipo').value,
-        nome: document.getElementById('nome').value,
-        email: document.getElementById('email').value,
-        pass: document.getElementById('pass').value,
-        tel: document.getElementById('tel').value,
-        qualifica: document.getElementById('qualifica').value,
-        bio: document.getElementById('bio').value
-    };
-
-    const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(dati)
-    });
-
-    const result = await res.json();
-    if(result.success) {
-        alert(result.message);
-        chiudiModale('modal-reg');
-        caricaUtenti();
-    } else {
-        alert("Errore: " + result.message);
-    }
-};
-
-// Caricamento Liste B2B
-async function caricaUtenti() {
-    const res = await fetch('/api/utenti');
-    const utenti = await res.json();
-    const cDiv = document.getElementById('lista-cantine');
-    const sDiv = document.getElementById('lista-sommelier');
+// LIVELLO 3: NAVIGAZIONE TRA LE 20 PAGINE
+function mostraPagina(pageId, data = null) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + pageId);
+    if(target) target.classList.add('active');
     
-    cDiv.innerHTML = ''; sDiv.innerHTML = '';
+    if(pageId === 'profilo-dettaglio' && data) {
+        renderizzaProfiloDettagliato(data);
+    }
+}
 
-    utenti.forEach(u => {
-        const card = document.createElement('div');
-        card.className = 'profile-card';
-        card.innerHTML = `
-            <h3>${u.nome}</h3>
-            <p><strong>${u.qualifica}</strong></p>
-            <p>${u.bio.substring(0, 50)}...</p>
-            <button onclick="apriChat('${u.nome}')">Contatta</button>
-        `;
-        (u.tipo === 'cantina' ? cDiv : sDiv).appendChild(card);
+// LIVELLO 10: REGISTRAZIONE CON CONTROLLO EMAIL & FILE CV
+async function registraUtente(e) {
+    e.preventDefault();
+    const email = document.getElementById('reg-email').value;
+    
+    // Controllo duplicati (Livello di Validazione)
+    const check = await fetch(`/api/check-email?email=${email}`);
+    const res = await check.json();
+    if(res.exists) return alert("Errore: Email già registrata!");
+
+    // Preparazione dati con Storytelling (dal PDF)
+    const formData = new FormData(e.target); 
+    // Usiamo FormData per gestire l'invio di file (CV e Foto Profilo)
+    
+    const response = await fetch('/api/register', {
+        method: 'POST',
+        body: formData // Invia file e testi insieme
     });
 }
 
-// Chat e File
-function apriChat(nome) {
-    apriModale('modal-chat');
-    document.getElementById('chat-target').innerText = "Conversazione con: " + nome;
+// LIVELLO 12: RENDER DINAMICO PROFILI (Immagine 1 e 2)
+function renderizzaProfiloDettagliato(utente) {
+    const container = document.getElementById('profilo-content');
+    container.innerHTML = `
+        <div class="profile-header">
+            <img src="${utente.foto || 'default-avatar.png'}" class="profile-img-top-left">
+            <h1>${utente.nome}</h1>
+            <p class="tag">${utente.qualifica}</p>
+        </div>
+        <div class="profile-body">
+            <div class="bio-box"><h3>Biografia</h3><p>${utente.bio}</p></div>
+            <div class="data-box">
+                <p>📧 ${utente.email}</p>
+                <p>📞 ${utente.tel}</p>
+                ${utente.cv ? `<a href="${utente.cv}" target="_blank">📄 Scarica CV/Documenti</a>` : ''}
+            </div>
+            <button onclick="apriChat('${utente.id}')" class="btn-chat">Invia Messaggio / File</button>
+        </div>
+    `;
 }
 
-function inviaMsg() {
-    const txt = document.getElementById('chat-txt').value;
-    const file = document.getElementById('chat-file').files[0];
-    if(!txt && !file) return;
-
-    const msg = document.createElement('div');
-    msg.className = 'msg sent';
-    msg.innerHTML = (txt ? txt : "") + (file ? `<br><small>📄 ${file.name}</small>` : "");
-    document.getElementById('chat-msgs').appendChild(msg);
-    document.getElementById('chat-txt').value = '';
-}
-
-// Avvio
-caricaUtenti();
+// Inizializzazione
+window.onload = async () => {
+    const res = await fetch('/api/utenti');
+    tuttiUtenti = await res.json();
+    aggiornaInterfaccia();
+};

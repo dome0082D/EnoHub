@@ -1,21 +1,41 @@
-:root { --wine: #722f37; --gold: #c5a059; --bg: #f4f1ee; }
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+/* Layout Mobile-First (Android) */
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-family: sans-serif;
+    background: #f0f0f0;
+}
 
-.navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: white; border-bottom: 2px solid var(--wine); }
-.logo { font-size: 24px; font-weight: bold; color: var(--wine); }
+.rect-column {
+    width: 100%; /* Su mobile sono uno sotto l'altro */
+    height: 300px;
+    background: white;
+    margin: 10px 0;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-.pdf-hero { background: var(--wine); color: white; text-align: center; padding: 50px 20px; }
+/* Layout Desktop */
+@media (min-width: 768px) {
+    .dual-container {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        padding: 40px;
+    }
+    .rect-column {
+        width: 400px; /* Grandi riquadri rettangolari verticali */
+        height: 600px;
+    }
+}
 
-.main-grid { display: flex; justify-content: space-around; padding: 30px; gap: 20px; }
-.column { flex: 1; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: 500px; }
-
-.profile-card { border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 8px; transition: 0.2s; }
-.profile-card:hover { border-color: var(--wine); transform: translateY(-3px); }
-
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; }
-.modal-content { background: white; width: 90%; max-width: 500px; margin: 50px auto; padding: 30px; border-radius: 15px; }
-
-.btn-main { background: var(--wine); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-.btn-full { width: 100%; background: var(--wine); color: white; padding: 12px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; }
-
-input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+.profile-img-top-left {
+    width: 120px;
+    height: 120px;
+    border-radius: 15px;
+    object-fit: cover;
+    border: 3px solid var(--wine);
+}

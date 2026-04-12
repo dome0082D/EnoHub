@@ -3,72 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub - Network B2B</title>
+    <title>EnoHub B2B Network</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="navbar">
-        <div class="logo">EnoHub</div>
-        <input type="text" id="search" placeholder="Cerca nel network..." onkeyup="cerca()">
-        <div class="auth-group">
-            <button class="btn-alt" onclick="apriModale('modal-login')">Accedi</button>
-            <button class="btn-main" onclick="apriModale('modal-reg')">Iscriviti</button>
+    <nav id="main-nav">
+        <div class="logo" onclick="mostraPagina('home')">EnoHub</div>
+        <div id="user-tools">
+            <input type="text" id="global-search" placeholder="Cerca nel network..." onkeyup="filtraGlobale()">
+            <div id="auth-status"></div>
         </div>
-    </header>
+    </nav>
 
-    <section class="pdf-hero">
-        <h1>Connettiamo l'eccellenza vinicola</h1>
-        <p>Superiamo i limiti dei canali tradizionali con rapporti B2B diretti.</p>
-    </section>
-
-    <div class="main-grid">
-        <div class="column" id="col-cantine">
-            <h2>🍷 Aziende Vinicole</h2>
-            <div id="lista-cantine" class="profiles-container"></div>
-        </div>
-
-        <div class="column" id="col-sommelier">
-            <h2>📜 Sommelier & Expert</h2>
-            <div id="lista-sommelier" class="profiles-container"></div>
-        </div>
-    </div>
-
-    <div id="modal-reg" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="chiudiModale('modal-reg')">&times;</span>
-            <h2>Crea Profilo Professionale</h2>
-            <form id="reg-form">
-                <select id="tipo" required>
-                    <option value="cantina">Sono una Cantina</option>
-                    <option value="sommelier">Sono un Sommelier</option>
-                </select>
-                <input type="text" id="nome" placeholder="Nome / Ragione Sociale" required>
-                <input type="email" id="email" placeholder="Email (Univoca)" required>
-                <input type="password" id="pass" placeholder="Password (min. 6 caratteri)" required>
-                <input type="tel" id="tel" placeholder="Telefono">
-                <input type="text" id="qualifica" placeholder="Qualifica/Specializzazione">
-                <textarea id="bio" placeholder="La tua biografia e storia..."></textarea>
-                <div class="privacy-box">
-                    <input type="checkbox" required> Accetto i <a href="#">Termini Privacy GDPR</a> reali.
+    <main id="app-viewport">
+        <section id="page-home" class="page active">
+            <div class="hero-pdf">Mission: Storytelling & B2B Integration</div>
+            <div class="dual-container">
+                <div class="rect-column" onclick="mostraPagina('esplora-cantine')">
+                    <h2>Cantine</h2>
+                    <div id="preview-cantine" class="mini-grid"></div>
                 </div>
-                <button type="submit" class="btn-full">Registrati</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modal-chat" class="modal">
-        <div class="modal-content chat-box">
-            <span class="close" onclick="chiudiModale('modal-chat')">&times;</span>
-            <div id="chat-target"></div>
-            <div id="chat-msgs"></div>
-            <div class="chat-input">
-                <input type="text" id="chat-txt" placeholder="Scrivi...">
-                <label for="chat-file">📎</label>
-                <input type="file" id="chat-file" hidden>
-                <button onclick="inviaMsg()">Invia</button>
+                <div class="rect-column" onclick="mostraPagina('esplora-sommelier')">
+                    <h2>Sommelier</h2>
+                    <div id="preview-sommelier" class="mini-grid"></div>
+                </div>
             </div>
-        </div>
-    </div>
+        </section>
+
+        <section id="page-esplora-cantine" class="page">
+            <aside class="sidebar-filters">
+                <h3>Filtra Cantine</h3>
+                <input type="text" id="filter-cantina-nome" placeholder="Nome...">
+                <input type="text" id="filter-cantina-regione" placeholder="Regione...">
+                <input type="text" id="filter-cantina-citta" placeholder="Città...">
+                <button onclick="applicaFiltri('cantina')">Applica</button>
+            </aside>
+            <div id="grid-cantine" class="main-grid"></div>
+        </section>
+
+        <section id="page-profilo-dettaglio" class="page">
+            <button onclick="history.back()">⬅ Torna indietro</button>
+            <div id="profilo-content"></div>
+        </section>
+
+        </main>
 
     <script src="script.js"></script>
 </body>
