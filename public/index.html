@@ -2,83 +2,79 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub - B2B Network</title>
+    <title>EnoHub - Networking Vinicolo B2B</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <header class="topbar">
-        <div class="logo">EnoHub</div>
-        <input type="text" id="searchInput" placeholder="Cerca cantina o sommelier..." onkeyup="loadUsers()">
-        <div id="auth-nav"></div>
+    <header>
+        <nav class="navbar">
+            <div class="logo">EnoHub</div>
+            <div class="search-bar">
+                <input type="text" id="search" placeholder="Cerca Cantine o Sommelier per specializzazione..." onkeyup="cercaUtenti()">
+            </div>
+            <div id="auth-buttons">
+                <button onclick="apriModale('modal-login')">Accedi</button>
+                <button onclick="apriModale('modal-reg')">Iscriviti</button>
+            </div>
+        </nav>
     </header>
 
-    <main class="dashboard">
-        <section class="vertical-panel">
-            <div class="panel-header cantina-bg">🍷 Cantine Associate</div>
-            <div id="cantine-list" class="panel-content"></div>
-        </section>
+    <section class="hero-pdf">
+        <h1>Connettiamo Cantine e Professionisti del Vino</h1>
+        <p>EnoHub risolve la mancanza di rapporti diretti nel mercato vinicolo, superando i limiti dei canali tradizionali.</p>
+    </section>
 
-        <section class="vertical-panel">
-            <div class="panel-header sommelier-bg">📜 Professionisti del Vino</div>
-            <div id="sommelier-list" class="panel-content"></div>
-        </section>
+    <main class="container">
+        <div class="column">
+            <h2>🍷 Cantine (Aziende Vinicole)</h2>
+            <p class="subtitle-pdf">Storytelling corporate e lancio nuove annate</p>
+            <div id="lista-cantine" class="grid-list"></div>
+        </div>
+
+        <div class="column">
+            <h2>📜 Sommelier e Wine Expert</h2>
+            <p class="subtitle-pdf">Competenze e certificazioni monetizzabili</p>
+            <div id="lista-sommelier" class="grid-list"></div>
+        </div>
     </main>
 
-    <div id="auth-modal" class="modal hidden">
+    <div id="modal-reg" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('auth-modal')">&times;</span>
-            <h2 id="auth-title">Accedi a EnoHub</h2>
-            
-            <form id="auth-form" onsubmit="handleAuth(event)">
+            <span class="close" onclick="chiudiModale('modal-reg')">&times;</span>
+            <h2>Unisciti al Network EnoHub</h2>
+            <form id="reg-form">
+                <select id="tipo" required>
+                    <option value="">Seleziona Ruolo...</option>
+                    <option value="cantina">Cantina (Produttore)</option>
+                    <option value="sommelier">Sommelier / Wine Buyer</option>
+                </select>
+                <input type="text" id="nome" placeholder="Nome e Cognome / Ragione Sociale" required>
                 <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" id="pass" placeholder="Password" required>
+                <input type="tel" id="tel" placeholder="Telefono">
+                <input type="text" id="qualifica" placeholder="Qualifica (es. AIS, WSET, FISAR)">
+                <input type="text" id="spec" placeholder="Specializzazione (es. Vini Naturali, Bollicine)">
+                <textarea id="bio" placeholder="La tua storia/Biografia (Storytelling richiesto nel PDF)"></textarea>
                 
-                <div id="register-fields" class="hidden">
-                    <select id="ruolo">
-                        <option value="cantina">Cantina / Produttore</option>
-                        <option value="sommelier">Sommelier / Wine Expert</option>
-                    </select>
-                    <input type="text" id="nome" placeholder="Nome o Ragione Sociale">
-                    <input type="tel" id="telefono" placeholder="Telefono">
-                    <input type="text" id="qualifica" placeholder="Qualifica (es. Master Sommelier)">
-                    <input type="text" id="specializzazione" placeholder="Specializzazioni (es. Vini Naturali, Borgogna)">
-                    <textarea id="bio" placeholder="Biografia o Storia dell'Azienda..."></textarea>
-                    
-                    <div class="file-upload">
-                        <label>Carica Foto Profilo o Logo:</label>
-                        <input type="file" id="profileFile">
-                    </div>
-
-                    <div class="privacy-box">
-                        <input type="checkbox" id="privacy" required>
-                        <label>Accetto la <a href="https://www.garanteprivacy.it/regolamentoue" target="_blank">Privacy Policy e GDPR</a></label>
-                    </div>
+                <div class="privacy-check">
+                    <input type="checkbox" required> 
+                    <span>Accetto il <a href="https://www.garanteprivacy.it/il-testo-del-regolamento" target="_blank">Regolamento GDPR e Privacy</a>. I dati saranno trattati per fini B2B.</span>
                 </div>
-                
-                <button type="submit" class="btn">Conferma</button>
+                <button type="submit">Crea Profilo Professionale</button>
             </form>
-            <p onclick="toggleAuthMode()" class="toggle-link">Non hai un account? Registrati ora</p>
         </div>
     </div>
 
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-content profile-window">
-            <span class="close" onclick="closeModal('profile-modal')">&times;</span>
-            <div id="profile-details"></div>
-            
-            <div id="chat-area" class="hidden">
-                <hr>
-                <h3>Chat Privata</h3>
-                <div id="chat-box"></div>
-                <div class="chat-inputs">
-                    <input type="text" id="chat-message" placeholder="Scrivi un messaggio...">
-                    <input type="file" id="chat-file">
-                    <button onclick="sendMessage()" class="btn">Invia</button>
-                </div>
+    <div id="modal-chat" class="modal">
+        <div class="modal-content chat-window">
+            <span class="close" onclick="chiudiModale('modal-chat')">&times;</span>
+            <div id="chat-header"></div>
+            <div id="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="msg-testo" placeholder="Scrivi un messaggio...">
+                <input type="file" id="msg-file">
+                <button onclick="inviaMessaggio()">Invia</button>
             </div>
-            <p id="chat-warning" class="warning">Effettua il login per chattare e inviare file.</p>
         </div>
     </div>
 
