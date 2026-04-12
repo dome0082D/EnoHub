@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - B2B Network</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="logo">EnoHub</div>
+        <input type="text" id="searchInput" placeholder="Cerca cantina o sommelier..." onkeyup="loadUsers()">
+        <div id="auth-nav"></div>
+    </header>
+
+    <main class="dashboard">
+        <section class="vertical-panel">
+            <div class="panel-header cantina-bg">🍷 Cantine Associate</div>
+            <div id="cantine-list" class="panel-content"></div>
+        </section>
+
+        <section class="vertical-panel">
+            <div class="panel-header sommelier-bg">📜 Professionisti del Vino</div>
+            <div id="sommelier-list" class="panel-content"></div>
+        </section>
+    </main>
+
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('auth-modal')">&times;</span>
+            <h2 id="auth-title">Accedi a EnoHub</h2>
+            
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                
+                <div id="register-fields" class="hidden">
+                    <select id="ruolo">
+                        <option value="cantina">Cantina / Produttore</option>
+                        <option value="sommelier">Sommelier / Wine Expert</option>
+                    </select>
+                    <input type="text" id="nome" placeholder="Nome o Ragione Sociale">
+                    <input type="tel" id="telefono" placeholder="Telefono">
+                    <input type="text" id="qualifica" placeholder="Qualifica (es. Master Sommelier)">
+                    <input type="text" id="specializzazione" placeholder="Specializzazioni (es. Vini Naturali, Borgogna)">
+                    <textarea id="bio" placeholder="Biografia o Storia dell'Azienda..."></textarea>
+                    
+                    <div class="file-upload">
+                        <label>Carica Foto Profilo o Logo:</label>
+                        <input type="file" id="profileFile">
+                    </div>
+
+                    <div class="privacy-box">
+                        <input type="checkbox" id="privacy" required>
+                        <label>Accetto la <a href="https://www.garanteprivacy.it/regolamentoue" target="_blank">Privacy Policy e GDPR</a></label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">Conferma</button>
+            </form>
+            <p onclick="toggleAuthMode()" class="toggle-link">Non hai un account? Registrati ora</p>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content profile-window">
+            <span class="close" onclick="closeModal('profile-modal')">&times;</span>
+            <div id="profile-details"></div>
+            
+            <div id="chat-area" class="hidden">
+                <hr>
+                <h3>Chat Privata</h3>
+                <div id="chat-box"></div>
+                <div class="chat-inputs">
+                    <input type="text" id="chat-message" placeholder="Scrivi un messaggio...">
+                    <input type="file" id="chat-file">
+                    <button onclick="sendMessage()" class="btn">Invia</button>
+                </div>
+            </div>
+            <p id="chat-warning" class="warning">Effettua il login per chattare e inviare file.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
