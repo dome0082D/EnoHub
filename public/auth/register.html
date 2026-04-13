@@ -2,54 +2,71 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Iscriviti - EnoHub</title>
+    <title>EnoHub - Registrazione</title>
     <link rel="stylesheet" href="../styles/main.css">
     <script src="../scripts/api.js"></script>
 </head>
 <body class="auth-page">
-    <div class="auth__content">
-        <h2 class="auth__title">Crea il tuo profilo professionale</h2>
-        <form id="regForm">
-            <div class="auth__form-group">
-                <label class="auth__label">Tipo Profilo:</label>
-                <select id="tipo" name="tipo" class="auth__input" required>
+    <div class="auth__content" style="max-width: 500px; margin: 50px auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h2 style="color: var(--wine-red); text-align: center; margin-bottom: 20px;">Crea il tuo Profilo</h2>
+        
+        <form id="registerForm">
+            <div style="margin-bottom: 15px;">
+                <select id="tipo" class="auth__input" style="width: 100%; padding: 10px;" required>
+                    <option value="" disabled selected>Seleziona Tipo Profilo...</option>
                     <option value="sommelier">Sommelier / Professionista</option>
-                    <option value="cantina">Cantina / Azienda</option>
+                    <option value="cantina">Cantina / Azienda Agricola</option>
                 </select>
             </div>
-            <div class="auth__form-group">
-                <input type="text" name="nome" class="auth__input" placeholder="Nome / Ragione Sociale" required>
+            <div style="margin-bottom: 15px;"><input type="text" id="nome" class="auth__input" placeholder="Nome (o Nome Cantina)" style="width: 100%; padding: 10px;" required></div>
+            <div style="margin-bottom: 15px;"><input type="text" id="cognome" class="auth__input" placeholder="Cognome (lascia vuoto se Cantina)" style="width: 100%; padding: 10px;"></div>
+            <div style="margin-bottom: 15px;"><input type="email" id="email" class="auth__input" placeholder="Email" style="width: 100%; padding: 10px;" required></div>
+            <div style="margin-bottom: 15px;"><input type="password" id="password" class="auth__input" placeholder="Password" style="width: 100%; padding: 10px;" required></div>
+            <div style="margin-bottom: 15px;"><input type="text" id="citta" class="auth__input" placeholder="Città / Regione" style="width: 100%; padding: 10px;" required></div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.9rem; color: #666;">Foto Profilo / Logo:</label>
+                <input type="file" id="foto" accept="image/*" style="width: 100%;">
             </div>
-            <div class="auth__form-group">
-                <input type="email" name="email" class="auth__input" placeholder="Email (Username)" required>
+
+            <div style="margin-bottom: 20px;">
+                <input type="checkbox" id="privacy" required>
+                <label for="privacy" style="font-size: 0.8rem; color: #666;">Accetto i Termini di Servizio e l'informativa sulla Privacy (GDPR).</label>
             </div>
-            <div class="auth__form-group">
-                <input type="password" name="password" class="auth__input" placeholder="Password" required>
-            </div>
-            <div class="auth__form-group">
-                <label>Foto Profilo / Logo:</label>
-                <input type="file" name="foto" class="auth__input" accept="image/*">
-            </div>
-            <div class="auth__form-group" id="cvField">
-                <label>Carica CV (Solo Sommelier):</label>
-                <input type="file" name="cv" class="auth__input" accept=".pdf,.doc">
-            </div>
-            <div class="privacy-check">
-                <input type="checkbox" required> <span>Accetto i <a href="../legal/privacy-policy.html">Termini e la Privacy</a> (GDPR)</span>
-            </div>
-            <button type="submit" class="auth__btn">REGISTRATI</button>
+            
+            <button type="submit" class="btn-red" style="width: 100%; padding: 12px; font-weight: bold;">REGISTRATI</button>
         </form>
     </div>
 
     <script>
-        document.getElementById('regForm').onsubmit = async (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            try {
-                const res = await EnoHubApi.register(formData);
-                if(res.success) { alert("Registrazione completata!"); window.location.href="login.html"; }
-            } catch(err) { alert("Errore: " + err.message); }
-        };
+            const btn = e.target.querySelector('button');
+            btn.innerText = "CARICAMENTO...";
+            
+            const fd = new FormData();
+            fd.append('tipo', document.getElementById('tipo').value);
+            fd.append('nome', document.getElementById('nome').value);
+            fd.append('cognome', document.getElementById('cognome').value);
+            fd.append('email', document.getElementById('email').value);
+            fd.append('password', document.getElementById('password').value);
+            fd.append('citta', document.getElementById('citta').value);
+            
+            if(document.getElementById('foto').files[0]) {
+                fd.append('foto', document.getElementById('foto').files[0]);
+            }
+
+            const res = await fetch('/api/register', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            if(data.success) {
+                alert("Registrazione completata! Ora puoi fare il login.");
+                window.location.href = "login.html";
+            } else {
+                alert("Errore: " + data.error);
+                btn.innerText = "REGISTRATI";
+            }
+        });
     </script>
 </body>
 </html>
