@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrazione - EnoHub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <form id="reg-form" class="profile-card" style="max-width: 600px; margin: 50px auto;">
+            <h2 style="color: var(--primary);">Crea il tuo Profilo B2B</h2>
+            
+            <div class="filter-group">
+                <select id="tipo" required style="width:100%; padding:10px; margin-bottom:15px;">
+                    <option value="sommelier">Sono un Sommelier / Professionista</option>
+                    <option value="cantina">Sono una Cantina / Azienda</option>
+                </select>
+                
+                <input type="text" id="nome" placeholder="Nome Reale o Ragione Sociale" required>
+                <input type="email" id="email" placeholder="Email (sarà la tua username)" required>
+                <input type="password" id="pass" placeholder="Scegli una Password" required>
+                <input type="text" id="citta" placeholder="Città" required>
+                <input type="text" id="regione" placeholder="Regione" required>
+                
+                <label>Foto Profilo/Logo:</label>
+                <input type="file" id="foto" accept="image/*">
+                
+                <label id="label-cv">Carica CV (Solo Sommelier):</label>
+                <input type="file" id="cv" accept=".pdf">
+                
+                <textarea id="bio" placeholder="Racconta la tua storia (Storytelling)..." rows="4" style="width:100%; border-radius:8px; padding:10px;"></textarea>
+            </div>
+
+            <div class="privacy-check">
+                <input type="checkbox" required>
+                <label>Accetto il trattamento dati GDPR e i termini di EnoHub.</label>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">REGISTRATI ORA</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('reg-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('tipo', document.getElementById('tipo').value);
+            formData.append('nome', document.getElementById('nome').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('pass', document.getElementById('pass').value);
+            formData.append('citta', document.getElementById('citta').value);
+            formData.append('regione', document.getElementById('regione').value);
+            formData.append('bio', document.getElementById('bio').value);
+            
+            const fotoFile = document.getElementById('foto').files[0];
+            const cvFile = document.getElementById('cv').files[0];
+            if(fotoFile) formData.append('foto', fotoFile);
+            if(cvFile) formData.append('cv', cvFile);
+
+            const res = await fetch('/api/register', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if(data.success) {
+                alert("Registrazione completata!");
+                location.href = 'login.html';
+            } else {
+                alert("Errore: " + data.message);
+            }
+        };
+    </script>
+</body>
+</html>

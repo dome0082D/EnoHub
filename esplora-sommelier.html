@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Trova Sommelier - EnoHub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar"><a href="index.html" class="logo">EnoHub</a></header>
+    <div class="layout-wrapper">
+        <aside class="sidebar-filters">
+            <h3>Filtra Sommelier</h3>
+            <input type="text" id="f-nome" placeholder="Cerca nome..." onkeyup="filtra()">
+            <input type="text" id="f-regione" placeholder="Regione..." onkeyup="filtra()">
+        </aside>
+        <section class="content-grid" id="lista-sommelier"></section>
+    </div>
+    <script src="main.js"></script>
+    <script>window.onload = () => caricaLista('sommelier');</script>
+</body>
+</html>
