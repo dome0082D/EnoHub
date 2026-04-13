@@ -2,26 +2,58 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Login - EnoHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - Login</title>
     <link rel="stylesheet" href="../styles/main.css">
     <script src="../scripts/api.js"></script>
 </head>
-<body>
+<body class="auth-page">
     <div class="auth__content">
         <h2 class="auth__title">Bentornato su EnoHub</h2>
+        
         <form id="loginForm">
-            <input type="email" id="email" class="auth__input" placeholder="Email" required><br><br>
-            <input type="password" id="password" class="auth__input" placeholder="Password" required><br><br>
-            <button type="submit" class="auth__btn">ACCEDI</button>
+            <div class="auth__form-group">
+                <input type="email" id="email" class="auth__input" placeholder="Email" required>
+            </div>
+            <div class="auth__form-group">
+                <input type="password" id="password" class="auth__input" placeholder="Password" required>
+            </div>
+            
+            <button type="submit" class="auth__btn" id="btnLogin">ACCEDI</button>
         </form>
+
+        <p class="auth__footer">Non hai un account? <a href="register.html">Registrati ora</a></p>
     </div>
+
     <script>
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const res = await EnoHubApi.login(document.getElementById('email').value, document.getElementById('password').value);
-            if(res.success) window.location.href = "../index.html";
-            else alert("Errore: " + res.error);
-        };
+        // Questa è la logica che "sblocca" il tuo tasto
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impedisce alla pagina di ricaricarsi a vuoto
+            
+            const btn = document.getElementById('btnLogin');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.innerText = "VERIFICA IN CORSO...";
+            btn.disabled = true;
+
+            try {
+                const result = await EnoHubApi.login(email, password);
+                
+                if (result.success) {
+                    alert("Accesso eseguito! Benvenuto.");
+                    window.location.href = "../index.html"; // Ti porta alla Home
+                } else {
+                    alert("Errore: " + (result.error || "Credenziali non valide"));
+                    btn.innerText = "ACCEDI";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("Errore di connessione al server.");
+                btn.innerText = "ACCEDI";
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
