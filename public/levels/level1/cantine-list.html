@@ -2,90 +2,61 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cantine - EnoHub</title>
+    <title>EnoHub - Lista Cantine</title>
     <link rel="stylesheet" href="../../styles/main.css">
-    <script src="../../scripts/api.js" defer></script>
-    <script src="../../scripts/ui.js" defer></script>
+    <script src="../../scripts/api.js"></script>
 </head>
 <body>
     <header class="header">
-        <div class="container">
-            <div class="header__content">
-                <a href="../../index.html" class="header__logo">EnoHub</a>
-                <nav class="header__nav">
-                    <ul>
-                        <li><a href="cantine-list.html">Cantine</a></li>
-                        <li><a href="sommelier-list.html">Sommelier</a></li>
-                        <li><a href="events-list.html">Eventi</a></li>
-                    </ul>
-                </nav>
-            </div>
+        <div class="container header__content" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="../../index.html" class="header__logo" style="color: #8b0000; font-size: 1.8rem; font-weight: bold; text-decoration: none;">EnoHub</a>
+            <nav>
+                <a href="../../auth/login.html" class="btn-outline" style="margin-right: 10px; padding: 8px 15px; border: 1px solid #8b0000; color: #8b0000; text-decoration: none; border-radius: 5px;">Accedi</a>
+                <a href="../../auth/register.html" class="btn-red" style="background: #8b0000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px;">Iscriviti</a>
+            </nav>
         </div>
     </header>
 
-    <main class="container">
-        <div class="cantine-list__content">
-            <aside class="filter-box">
-                <h3>Filtra Cantine</h3>
-                <form id="filterCantine">
-                    <div class="filter-box__group">
-                        <label class="filter-box__label">Regione:</label>
-                        <input type="text" id="f-regione" class="filter-box__input" placeholder="Es. Chianti, Etna...">
-                    </div>
-                    <div class="filter-box__group">
-                        <label class="filter-box__label">Filosofia:</label>
-                        <input type="text" id="f-filosofia" class="filter-box__input" placeholder="Es. Biologico, Tradizionale...">
-                    </div>
-                    <div class="filter-box__group">
-                        <label class="filter-box__label">Nome Cantina:</label>
-                        <input type="text" id="f-nome" class="filter-box__input" placeholder="Cerca nome...">
-                    </div>
-                    <button type="submit" class="filter-box__btn">Cerca</button>
-                </form>
-            </aside>
+    <div class="main-grid container" style="display: flex; gap: 30px; padding: 40px 0;">
+        <aside class="filter-sidebar" style="width: 250px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <h3 style="color: #8b0000; border-bottom: 2px solid #8b0000; padding-bottom: 10px;">Filtra Cantine</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.9rem; font-weight: bold;">Regione:</label>
+                <input type="text" id="filterRegione" placeholder="Es. Toscana" style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <button class="btn-red" onclick="renderCantine()" style="width: 100%; padding: 10px; background: #8b0000; color: white; border: none; border-radius: 5px; cursor: pointer;">CERCA</button>
+        </aside>
 
-            <section class="cantine-grid" id="cantineGrid">
-                <p>Caricamento cantine...</p>
-            </section>
-        </div>
-    </main>
+        <section style="flex: 1;">
+            <h2 style="color: #333;">Cantine Iscritte</h2>
+            <div class="card-container" id="cantineGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                </div>
+        </section>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Chiamata all'API per caricare le cantine
-            const cantine = await EnoHubApi.getCantineList();
+        async function renderCantine() {
+            const res = await fetch('/api/utenti?tipo=cantina');
+            const cantine = await res.json();
             const grid = document.getElementById('cantineGrid');
-            grid.innerHTML = '';
+            
+            if(cantine.length === 0) {
+                grid.innerHTML = "<p>Nessuna cantina trovata. Sii il primo a registrarti!</p>";
+                return;
+            }
 
-            cantine.forEach(c => {
-                grid.innerHTML += `
-                    <div class="cantine-card">
-                        <div class="cantine-card__img">
-                            <img src="../../${c.foto || 'uploads/profiles/default-cantina.jpg'}" alt="${c.nome}">
-                        </div>
-                        <div class="cantine-card__body">
-                            <h3>${c.nome}</h3>
-                            <p>${c.regione || c.citta}</p>
-                            <div class="sommelier-card__tags">
-                                <span class="sommelier-card__tag">${c.filosofia || 'Classica'}</span>
-                            </div>
-                            <a href="cantine-profile.html?id=${c.id}" class="btn-vedi-profilo">Vedi Pagina</a>
-                        </div>
+            grid.innerHTML = cantine.map(c => `
+                <div class="card" style="background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden;">
+                    <img src="../../${c.foto || 'img/default-cantina.jpg'}" style="width: 100%; height: 150px; object-fit: cover;">
+                    <div style="padding: 15px;">
+                        <h4 style="margin: 0 0 5px 0; color: #8b0000;">${c.nome}</h4>
+                        <small style="color: #666;">${c.citta}</small>
+                        <a href="cantine-profile.html?id=${c.id}" style="display: block; text-align: center; background: #eee; padding: 8px; margin-top: 15px; text-decoration: none; color: #333; border-radius: 5px;">Vedi Pagina</a>
                     </div>
-                `;
-            });
-
-            // Logica Filtro
-            document.getElementById('filterCantine').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const nome = document.getElementById('f-nome').value.toLowerCase();
-                document.querySelectorAll('.cantine-card').forEach(card => {
-                    const text = card.innerText.toLowerCase();
-                    card.style.display = text.includes(nome) ? 'block' : 'none';
-                });
-            });
-        });
+                </div>
+            `).join('');
+        }
+        renderCantine();
     </script>
 </body>
 </html>
