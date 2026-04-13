@@ -1,0 +1,32 @@
+<section class="events-table-container">
+    <h2>Calendario Eventi Internazionale</h2>
+    <table class="events-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Cantina Ospitante</th>
+                <th>Evento</th>
+                <th>Descrizione</th>
+                <th>Località</th>
+            </tr>
+        </thead>
+        <tbody id="eventsTableBody">
+            </tbody>
+    </table>
+</section>
+
+<script>
+    async function loadEvents() {
+        const eventi = await EnoHubApi.getEventsList();
+        const tbody = document.getElementById('eventsTableBody');
+        tbody.innerHTML = eventi.map(e => `
+            <tr>
+                <td><strong>${e.data}</strong></td>
+                <td><a href="cantine-profile.html?id=${e.cantinaId}">${e.nomeCantina}</a></td>
+                <td>${e.titolo}</td>
+                <td>${e.descrizione}</td>
+                <td>${e.luogo}</td>
+            </tr>
+        `).join('');
+    }
+</script>

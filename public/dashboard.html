@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - EnoHub</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts/api.js"></script>
+</head>
+<body>
+    <div class="auth__content">
+        <h2>Gestione Profilo</h2>
+        <form id="updateForm">
+            <div class="auth__form-group">
+                <label>Telefono:</label>
+                <input type="tel" id="u-tel" class="auth__input">
+            </div>
+            <div class="auth__form-group">
+                <label>Biografia:</label>
+                <textarea id="u-bio" class="auth__input" rows="5"></textarea>
+            </div>
+            <div class="auth__form-group">
+                <label>Specializzazioni (separate da virgola):</label>
+                <input type="text" id="u-spec" class="auth__input">
+            </div>
+            <button type="submit" class="auth__btn">SALVA MODIFICHE</button>
+        </form>
+
+        <hr style="margin: 30px 0;">
+        <button onclick="EnoHubApi.logout()" class="btn-logout" style="width:100%; padding:10px; background:#666; color:white; border:none; border-radius:8px; cursor:pointer;">ESCI (LOGOUT)</button>
+        <button onclick="EnoHubApi.deleteProfile()" class="btn-delete" style="width:100%; margin-top:10px; padding:10px; background:red; color:white; border:none; border-radius:8px; cursor:pointer;">ELIMINA ACCOUNT (GDPR)</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('enoUser'));
+            document.getElementById('u-tel').value = user.telefono || '';
+            document.getElementById('u-bio').value = user.bio || '';
+            document.getElementById('u-spec').value = user.specializzazione || '';
+
+            document.getElementById('updateForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const data = {
+                    telefono: document.getElementById('u-tel').value,
+                    bio: document.getElementById('u-bio').value,
+                    specializzazione: document.getElementById('u-spec').value
+                };
+                const res = await fetch('/api/utenti/update', {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                if(res.ok) {
+                    alert("Dati aggiornati!");
+                    const updated = await res.json();
+                    localStorage.setItem('enoUser', JSON.stringify(updated.user));
+                }
+            };
+        });
+    </script>
+</body>
+</html>

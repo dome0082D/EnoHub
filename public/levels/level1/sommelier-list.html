@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esplora Sommelier - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js" defer></script>
+    <script src="../../scripts/ui.js" defer></script>
+</head>
+<body class="sommelier-list-page">
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <a href="../../index.html" class="header__logo">EnoHub</a>
+                <nav class="header__nav">
+                    <ul>
+                        <li><a href="cantine-list.html">Cantine</a></li>
+                        <li><a href="sommelier-list.html">Sommelier</a></li>
+                        <li><a href="events-list.html">Eventi</a></li>
+                        <li><a href="../../legal/privacy-policy.html">Privacy</a></li>
+                    </ul>
+                </nav>
+                 <div class="auth-menu logged-out" id="authMenu">
+                    <a href="../../auth/login.html" class="btn-login">Login</a>
+                    <a href="../../auth/register.html" class="btn-register">Iscriviti</a>
+                </div>
+                <div class="user-menu logged-in" id="userMenu">
+                    <a href="../../dashboard.html" class="user-menu__avatar">
+                        <img id="userAvatar" src="../../uploads/profiles/default-avatar.png" alt="Profilo">
+                    </a>
+                    <a href="../../dashboard.html" class="user-menu__name" id="userName"></a>
+                    <a href="../../auth/logout.html" class="btn-logout" onclick="event.preventDefault(); EnoHubApi.logout();">Esci</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="sommelier-list__content">
+            <aside class="filter-box">
+                <form id="filterForm">
+                    <div class="filter-box__group">
+                        <label class="filter-box__label">Filtra Professionisti</label>
+                    </div>
+                    <div class="filter-box__group">
+                        <label for="locality" class="filter-box__label">Località:</label>
+                        <input type="text" id="locality" name="locality" class="filter-box__input" placeholder="Es. Milano, Londra">
+                    </div>
+                    <div class="filter-box__group">
+                        <label for="availability" class="filter-box__label">Disponibilità:</label>
+                        <select id="availability" name="availability" class="filter-box__input">
+                            <option value="Tutte">Tutte</option>
+                            <option value="Sì">Sì</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="filter-box__group">
+                        <label class="filter-box__label">Specializzazioni:</label>
+                        <div class="filter-box__specializations">
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Borgogna" id="spec-borgogna"><label for="spec-borgogna">Borgogna</label></div>
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Piemonte" id="spec-piemonte"><label for="spec-piemonte">Piemonte</label></div>
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Vini Naturali" id="spec-vini-naturali"><label for="spec-vini-naturali">Vini Naturali</label></div>
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Champagne" id="spec-champagne"><label for="spec-champagne">Champagne</label></div>
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Toscana" id="spec-toscana"><label for="spec-toscana">Toscana</label></div>
+                            <div class="filter-box__checkbox-group"><input type="checkbox" name="spec" value="Bordeaux" id="spec-bordeaux"><label for="spec-bordeaux">Bordeaux</label></div>
+                        </div>
+                    </div>
+                    <div class="filter-box__group">
+                        <label class="filter-box__label">Certificazioni:</label>
+                        <div class="filter-box__specializations">
+                             <div class="filter-box__checkbox-group"><input type="checkbox" name="cert" value="WSET" id="cert-wset"><label for="cert-wset">WSET</label></div>
+                             <div class="filter-box__checkbox-group"><input type="checkbox" name="cert" value="AIS" id="cert-ais"><label for="cert-ais">AIS</label></div>
+                             <div class="filter-box__checkbox-group"><input type="checkbox" name="cert" value="Court of Master Sommeliers" id="cert-cms"><label for="cert-cms">Court of Master Sommeliers</label></div>
+                             <div class="filter-box__checkbox-group"><input type="checkbox" name="cert" value="FISAR" id="cert-fisar"><label for="cert-fisar">FISAR</label></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="filter-box__btn">Cerca</button>
+                </form>
+            </aside>
+
+            <section class="sommelier-grid" id="sommelierGrid">
+                </section>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            EnoHubUI.initSommelierList();
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                EnoHubUI.filterSommelier();
+            });
+        });
+    </script>
+</body>
+</html>
