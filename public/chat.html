@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat B2B - EnoHub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="chat-page">
+    <header class="navbar">
+        <button onclick="history.back()" class="btn-icon">⬅</button>
+        <div class="chat-partner-info">
+            <img id="partner-img" src="" class="avatar-small">
+            <h2 id="partner-name">Chat</h2>
+        </div>
+    </header>
+
+    <div id="chat-window" class="chat-window">
+        </div>
+
+    <footer class="chat-footer">
+        <form id="chat-form">
+            <label for="file-input" class="btn-attach">📎
+                <input type="file" id="file-input" hidden>
+            </label>
+            <input type="text" id="msg-input" placeholder="Scrivi un messaggio..." required>
+            <button type="submit" class="btn-send">➤</button>
+        </form>
+        <div id="file-preview" class="file-preview"></div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const destId = params.get('dest');
+        const user = JSON.parse(localStorage.getItem('enoUser'));
+
+        if (!user || !destId) location.href = 'login.html';
+
+        // Carica info del destinatario
+        fetch(`/api/utenti/${destId}`).then(r => r.json()).then(d => {
+            document.getElementById('partner-name').innerText = d.nome;
+            document.getElementById('partner-img').src = d.foto;
+        });
+
+        // Gestione Invio Messaggio e File (Livello 17)
+        document.getElementById('chat-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('msg-input').value;
+            const file = document.getElementById('file-input').files[0];
+
+            const formData = new FormData();
+            formData.append('mittente', user.id);
+            formData.append('destinatario', destId);
+            formData.append('testo', text);
+            if (file) formData.append('allegato', file);
+
+            const res = await fetch('/api/chat/send', {
+                method: 'POST',
+                body: formData // Invia file e testo insieme
+            });
+
+            if (res.ok) {
+                document.getElementById('msg-input').value = '';
+                document.getElementById('file-input').value = '';
+                caricaMessaggi();
+            }
+        };
+
+        async function caricaMessaggi() {
+            // Logica per scaricare e mostrare i messaggi dal database.json
+            // In un sistema reale useresti WebSocket, qui usiamo un refresh ogni 3 secondi
+        }
+        setInterval(caricaMessaggi, 3000);
+    </script>
+</body>
+</html>
