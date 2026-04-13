@@ -5,38 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EnoHub - Home</title>
     <link rel="stylesheet" href="styles/main.css">
-    <script src="scripts/api.js" defer></script>
+    <script src="scripts/api.js"></script>
 </head>
-<body class="home-page">
+<body>
     <header class="header">
-        <div class="container">
-            <div class="header__content">
-                <a href="index.html" class="header__logo">EnoHub</a>
-                <nav class="header__nav">
-                    <ul>
-                        <li><a href="levels/level1/cantine-list.html">Cantine</a></li>
-                        <li><a href="levels/level1/sommelier-list.html">Sommelier</a></li>
-                    </ul>
-                </nav>
+        <div class="container header__content">
+            <a href="index.html" class="header__logo">EnoHub</a>
+            <div id="nav-auth">
+                <a href="auth/login.html" class="btn-outline" style="margin-right: 10px;">Accedi</a>
+                <a href="auth/register.html" class="btn-red">Iscriviti</a>
             </div>
         </div>
     </header>
 
-    <main class="container">
+    <div class="container">
+        <section class="wine-visual-experience">
+            <div class="visual-grid">
+                <div class="visual-item" style="background-image: url('https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?q=80&w=600');"><span>Cantine</span></div>
+                <div class="visual-item" style="background-image: url('https://images.unsplash.com/photo-1504279577054-acfeccf8fc52?q=80&w=600');"><span>Vigneti</span></div>
+                <div class="visual-item" style="background-image: url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=600');"><span>Sommelier</span></div>
+            </div>
+        </section>
+
         <div class="home__content">
             <a href="levels/level1/cantine-list.html" class="home__card">
-                <div class="home__card-inner">
-                    <h2>Cantine</h2>
-                    <p>Scopri le aziende vinicole del network.</p>
-                </div>
+                <h2 style="color: var(--wine-red);">Esplora le Cantine</h2>
+                <p style="color: #666;">Scopri le migliori aziende vinicole del nostro network.</p>
             </a>
             <a href="levels/level1/sommelier-list.html" class="home__card">
-                <div class="home__card-inner">
-                    <h2>Sommelier</h2>
-                    <p>Trova i migliori professionisti del vino.</p>
-                </div>
+                <h2 style="color: var(--wine-red);">Trova un Sommelier</h2>
+                <p style="color: #666;">Contatta i professionisti per consulenze ed eventi.</p>
             </a>
         </div>
-    </main>
+        
+        <div style="text-align:center; padding: 20px; margin-bottom: 40px;">
+            <a href="levels/level3/wiki-archivio.html" class="btn-red" style="display:inline-block; width:auto;">Vai all'Archivio Vini Wikipedia</a>
+        </div>
+    </div>
 </body>
 </html>
