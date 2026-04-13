@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Privata - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+</head>
+<body>
+    <div class="chat-container container">
+        <div class="chat-window">
+            <div id="chatMessages" class="chat-messages">
+                </div>
+            
+            <form id="chatForm" class="chat-input-area">
+                <input type="text" id="msgText" placeholder="Scrivi un messaggio..." required>
+                <label class="btn-file">
+                    📎 <input type="file" id="msgFile" style="display:none;">
+                </label>
+                <button type="submit" class="btn-red">INVIA</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const destId = urlParams.get('to');
+
+        document.getElementById('chatForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('destinatario', destId);
+            formData.append('testo', document.getElementById('msgText').value);
+            
+            const fileInput = document.getElementById('msgFile');
+            if(fileInput.files[0]) formData.append('allegato', fileInput.files[0]);
+
+            const res = await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}` },
+                body: formData
+            });
+
+            if(res.ok) {
+                document.getElementById('msgText').value = '';
+                fileInput.value = '';
+                alert("Messaggio inviato!");
+                // Qui aggiungeresti la logica per ricaricare i messaggi a schermo
+            }
+        };
+    </script>
+</body>
+</html>
