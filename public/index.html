@@ -3,51 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub B2B Network</title>
-    <link rel="stylesheet" href="style.css">
+    <title>EnoHub - Home</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts/api.js" defer></script>
 </head>
-<body>
-    <nav id="main-nav">
-        <div class="logo" onclick="mostraPagina('home')">EnoHub</div>
-        <div id="user-tools">
-            <input type="text" id="global-search" placeholder="Cerca nel network..." onkeyup="filtraGlobale()">
-            <div id="auth-status"></div>
-        </div>
-    </nav>
-
-    <main id="app-viewport">
-        <section id="page-home" class="page active">
-            <div class="hero-pdf">Mission: Storytelling & B2B Integration</div>
-            <div class="dual-container">
-                <div class="rect-column" onclick="mostraPagina('esplora-cantine')">
-                    <h2>Cantine</h2>
-                    <div id="preview-cantine" class="mini-grid"></div>
-                </div>
-                <div class="rect-column" onclick="mostraPagina('esplora-sommelier')">
-                    <h2>Sommelier</h2>
-                    <div id="preview-sommelier" class="mini-grid"></div>
-                </div>
+<body class="home-page">
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <a href="index.html" class="header__logo">EnoHub</a>
+                <nav class="header__nav">
+                    <ul>
+                        <li><a href="levels/level1/cantine-list.html">Cantine</a></li>
+                        <li><a href="levels/level1/sommelier-list.html">Sommelier</a></li>
+                    </ul>
+                </nav>
             </div>
-        </section>
+        </div>
+    </header>
 
-        <section id="page-esplora-cantine" class="page">
-            <aside class="sidebar-filters">
-                <h3>Filtra Cantine</h3>
-                <input type="text" id="filter-cantina-nome" placeholder="Nome...">
-                <input type="text" id="filter-cantina-regione" placeholder="Regione...">
-                <input type="text" id="filter-cantina-citta" placeholder="Città...">
-                <button onclick="applicaFiltri('cantina')">Applica</button>
-            </aside>
-            <div id="grid-cantine" class="main-grid"></div>
-        </section>
-
-        <section id="page-profilo-dettaglio" class="page">
-            <button onclick="history.back()">⬅ Torna indietro</button>
-            <div id="profilo-content"></div>
-        </section>
-
-        </main>
-
-    <script src="script.js"></script>
+    <main class="container">
+        <div class="home__content">
+            <a href="levels/level1/cantine-list.html" class="home__card">
+                <div class="home__card-inner">
+                    <h2>Cantine</h2>
+                    <p>Scopri le aziende vinicole del network.</p>
+                </div>
+            </a>
+            <a href="levels/level1/sommelier-list.html" class="home__card">
+                <div class="home__card-inner">
+                    <h2>Sommelier</h2>
+                    <p>Trova i migliori professionisti del vino.</p>
+                </div>
+            </a>
+        </div>
+    </main>
 </body>
 </html>
