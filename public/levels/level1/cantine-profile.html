@@ -2,88 +2,89 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profilo Cantina - EnoHub</title>
     <link rel="stylesheet" href="../../styles/main.css">
-    <script src="../../scripts/api.js" defer></script>
+    <script src="../../scripts/api.js"></script>
 </head>
-<body>
-    <header class="header">
-        <div class="container"><a href="../../index.html" class="header__logo">EnoHub</a></div>
-    </header>
-
-    <div class="cantine-profile__banner">
-        <img id="c-banner" src="../../uploads/profiles/default-banner.jpg" alt="Banner Cantina">
+<body class="profile-page-cantina">
+    <div id="c-header-img" class="cantina-header-bg" style="background-image: url('https://images.unsplash.com/photo-1504279577054-acfeccf8fc52?q=80&w=1200');">
+        <div class="container">
+            <div class="cantina-logo-box">
+                <img id="c-logo" src="../../img/default-cantina.jpg" alt="Logo Cantina">
+            </div>
+        </div>
     </div>
 
-    <main class="cantine-profile__container">
-        <div class="cantine-profile__main">
-            <div class="profile-info__header">
-                <img id="c-logo" src="" alt="Logo" style="width: 80px; border-radius: 8px; margin-bottom: 10px;">
-                <h1 id="c-nome">Nome Cantina</h1>
-                <p id="c-sottotitolo" class="profile-info__subtitle">Regione, DOCG</p>
-            </div>
-
-            <section class="profile-section">
-                <h2>La Nostra Storia</h2>
-                <p id="c-bio">Racconto della tradizione vinicola...</p>
-            </section>
-
-            <section class="profile-section">
-                <h2>Galleria</h2>
-                <div class="galleria-grid" id="c-galleria">
-                    <div class="galleria-item"><img src="../../uploads/profiles/wine1.jpg"></div>
-                    <div class="galleria-item"><img src="../../uploads/profiles/wine2.jpg"></div>
-                </div>
-            </section>
+    <div class="container">
+        <div class="cantina-main-info">
+            <h1 id="c-nome">Nome Cantina</h1>
+            <p id="c-sottotitolo" style="color: #666;">Regione, Classificazione DOCG</p>
         </div>
 
-        <aside class="cantine-profile__sidebar">
-            <h3>In Breve</h3>
-            <div class="sidebar-data-box">
-                <p class="sidebar-data-label">Regione:</p>
-                <p id="c-regione" class="sidebar-data-value">-</p>
-            </div>
-            <div class="sidebar-data-box">
-                <p class="sidebar-data-label">Filosofia:</p>
-                <p id="c-filosofia" class="sidebar-data-value">-</p>
-            </div>
-            <div class="sidebar-data-box">
-                <p class="sidebar-data-label">Sito Web:</p>
-                <p class="sidebar-data-value"><a id="c-web" href="#">Visita il sito</a></p>
+        <div class="cantina-grid">
+            <div class="cantina-content-left">
+                <section class="detail-box">
+                    <h2 class="section-title">La Nostra Storia</h2>
+                    <p id="c-storia">Caricamento della storia della cantina...</p>
+                </section>
+
+                <section class="detail-box">
+                    <h2 class="section-title">Galleria</h2>
+                    <div class="cantina-gallery" id="c-gallery">
+                        <img src="https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?q=80&w=400" alt="Barriccaia">
+                        <div class="gallery-placeholder">Foto dei vigneti e della produzione</div>
+                    </div>
+                </section>
             </div>
 
-            <div id="contactArea">
-                <p class="text-muted">Effettua il login per vedere i contatti commerciali.</p>
-                <a href="../../auth/login.html" class="btn-contatta-cantina" style="text-align: center; display: block;">Accedi</a>
-            </div>
-        </aside>
-    </main>
+            <aside class="cantina-sidebar">
+                <div class="sidebar-card">
+                    <h3>In Breve</h3>
+                    <div class="info-item"><strong>Regione:</strong> <span id="s-regione">-</span></div>
+                    <div class="info-item"><strong>Filosofia:</strong> <span id="s-filosofia">-</span></div>
+                    <div class="info-item"><strong>Sito Web:</strong> <a href="#" id="s-web" target="_blank" style="color: var(--wine-red);">Visita Sito</a></div>
+                    
+                    <button onclick="startChat()" class="btn-red" style="margin-top: 20px;">CONTATTA LA CANTINA</button>
+                    <button id="btnSponsor" onclick="sponsorizza()" class="btn-outline" style="display:none; margin-top: 10px; width: 100%;">Sponsorizza Cantina</button>
+                </div>
+            </aside>
+        </div>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            if (!id) return window.location.href = 'cantine-list.html';
+        const urlParams = new URLSearchParams(window.location.search);
+        const cantinaId = urlParams.get('id');
 
-            const c = await EnoHubApi.getCantinaProfile(id);
-            
-            // Popolamento Dati
+        async function loadCantina() {
+            const c = await fetch(`/api/utenti/${cantinaId}`).then(r => r.json());
             document.getElementById('c-nome').innerText = c.nome;
-            document.getElementById('c-sottotitolo').innerText = `${c.regione}, ${c.qualifica || 'DOCG'}`;
-            document.getElementById('c-bio').innerText = c.bio || 'La storia di questa cantina è in fase di aggiornamento.';
-            document.getElementById('c-regione').innerText = c.regione;
-            document.getElementById('c-filosofia').innerText = c.specializzazione || 'Tradizionale';
-            document.getElementById('c-logo').src = '../../' + (c.foto || 'uploads/profiles/default-avatar.png');
-
-            // Se l'utente è loggato, mostriamo il tasto Chat e i contatti reali
-            if (EnoHubApi.isLoggedIn()) {
-                document.getElementById('contactArea').innerHTML = `
-                    <button onclick="location.href='chat.html?cid=${c.id}'" class="btn-contatta-cantina">Contatta la Cantina</button>
-                    <p style="margin-top:10px"><strong>Email:</strong> ${c.email}</p>
-                `;
+            document.getElementById('c-storia').innerText = c.bio || "Storia non disponibile.";
+            document.getElementById('s-regione').innerText = c.citta;
+            document.getElementById('s-filosofia').innerText = c.specializzazione || "Tradizionale";
+            if(c.foto) document.getElementById('c-logo').src = "../../" + c.foto;
+            
+            // Logica tasto Sponsorizza
+            const me = JSON.parse(localStorage.getItem('enoUser'));
+            if(me && me.tipo === 'sommelier') {
+                document.getElementById('btnSponsor').style.display = 'block';
             }
-        });
+        }
+
+        async function sponsorizza() {
+            const me = JSON.parse(localStorage.getItem('enoUser'));
+            const res = await fetch('/api/sponsorizza', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}`
+                },
+                body: JSON.stringify({ sommelierId: me.id, cantinaId: cantinaId })
+            });
+            if(res.ok) alert("Cantina aggiunta alle tue sponsorizzazioni!");
+        }
+
+        function startChat() { window.location.href = `../level2/chat-privata.html?to=${cantinaId}`; }
+        loadCantina();
     </script>
 </body>
 </html>
