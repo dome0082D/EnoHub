@@ -192,7 +192,33 @@ app.post('/api/chat/send', authenticate, upload.single('allegato'), (req, res) =
     writeJson(CHATS_FILE, chats);
     res.json({ success: true });
 });
-
+// Rotta per recuperare la cronologia dei messaggi tra due utenti
+app.get('/api/chat/history', authenticate, (req, res) => {
+    const { me, to } = req.query;
+    const chats = readJson(CHATS_FILE);
+    
+    // Filtra i messaggi dove io sono il mittente e lui il destinatario O viceversa
+    const history = chats.filter(m => 
+        (m.mittente === me && m.destinatario === to) || 
+        (m.mittente === to && m.destinatario === me)
+    );
+    
+    res.json(history);
+});
+// 10. SPONSORIZZAZIONI (Per collegare Sommelier e Cantine)
+app.post('/api/sponsorizza', authenticate, (req, res) => {
+    const { sommelierId, cantinaId } = req.body;
+    const users = readJson(USERS_FILE);
+    const sommelier = users.find(u => u.id === sommelierId);
+    if (sommelier) {
+        if (!sommelier.sponsored_cantine) sommelier.sponsored_cantine = [];
+        if (!sommelier.sponsored_cantine.includes(cantinaId)) {
+            sommelier.sponsored_cantine.push(cantinaId);
+            writeJson(USERS_FILE, users);
+        }
+    }
+    res.json({ success: true });
+});
 // ======================== AVVIO SERVER ========================
 
 app.listen(PORT, () => {
