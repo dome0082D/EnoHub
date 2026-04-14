@@ -1,112 +1,98 @@
 const express = require('express');
 const http = require('http');
-const mongoose = require('mongoose');
 const { Server } = require('socket.io');
-const cors = require('cors');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const mongoose = require('mongoose');
 const multer = require('multer');
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs-extra');
+const bcrypt = require('bcrypt');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: "*" } });
 
-// CONFIGURAZIONE CLOUDINARY
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: 'enohub_media', resource_type: 'auto' } });
-const upload = multer({ storage });
+// --- CONNESSIONE DATABASE ---
+const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS';
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('✅ Connesso a MongoDB Atlas'))
+    .catch(err => console.error('❌ Errore Auth DB (Verifica password!):', err.message));
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+// --- SCHEMI DATI ---
+const User = mongoose.model('User', new mongoose.Schema({
+    nome: String, email: { type: String, unique: true }, password: { type: String },
+    tipo: String, bio: { type: String, default: "Membro EnoHub" }
+}));
 
-// SCHEMI MONGODB (Mappati sulla tua foto)
-const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String, required: true },
-  profilePic: { type: String, default: 'https://via.placeholder.com/150' },
-  title: { type: String, default: 'Qualifica Professionale' },
-  location: { type: String, default: 'Località, Italia' },
-  isAvailable: { type: Boolean, default: true },
-  bio: { type: String, default: 'Racconta la tua esperienza...' },
-  specializations: [String],
-  certifications: [String],
-  media: [{ url: String, public_id: String, fileType: String }]
-}, { timestamps: true });
+const Message = mongoose.model('Message', new mongoose.Schema({
+    from: String, to: String, fromName: String, text: String, time: { type: Date, default: Date.now }
+}));
 
-const MessageSchema = new mongoose.Schema({
-  senderId: String,
-  receiverId: String,
-  text: String
-}, { timestamps: true });
+const Media = mongoose.model('Media', new mongoose.Schema({
+    ownerId: String, url: String, name: String, type: String, date: { type: Date, default: Date.now }
+}));
 
-const User = mongoose.model('User', UserSchema);
-const Message = mongoose.model('Message', MessageSchema);
+app.use(cors()); app.use(express.json()); app.use(express.static('public'));
+fs.ensureDirSync('public/uploads/media');
 
-// --- API ---
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email, password });
-  if (user) res.json({ success: true, user });
-  else res.status(401).json({ success: false, msg: "Credenziali errate" });
-});
+const upload = multer({ storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'public/uploads/media'),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+})});
 
+// --- API AUTH ---
 app.post('/api/register', async (req, res) => {
-  try {
-    const newUser = new User(req.body);
-    await newUser.save();
-    res.json({ success: true, user: newUser });
-  } catch (err) { res.status(400).json({ success: false, msg: "Email già presente" }); }
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const newUser = new User({ ...req.body, password: hashedPassword });
+        await newUser.save(); res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false, error: "Email già in uso." }); }
 });
 
-app.put('/api/profile/:id', async (req, res) => {
-  const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updatedUser);
+app.post('/api/login', async (req, res) => {
+    const user = await User.findOne({ email: req.body.email });
+    if (user && await bcrypt.compare(req.body.password, user.password)) res.json({ success: true, user });
+    else res.status(401).json({ success: false });
 });
 
-app.get('/api/users', async (req, res) => {
-  const users = await User.find({}, 'name _id profilePic');
-  res.json(users);
+app.put('/api/user/:id', async (req, res) => {
+    const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, user: updated });
 });
 
-app.post('/api/upload/:userId', upload.single('file'), async (req, res) => {
-  const fileData = { url: req.file.path, public_id: req.file.filename, fileType: req.file.mimetype };
-  const user = await User.findByIdAndUpdate(req.params.userId, { $push: { media: fileData } }, { new: true });
-  res.json(user);
+app.get('/api/users', async (req, res) => res.json(await User.find({}, 'nome tipo bio')));
+
+// --- API MEDIA ---
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    const media = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
+    await media.save(); res.json(media);
 });
 
-app.delete('/api/media/:userId', async (req, res) => {
-  const { public_id } = req.body;
-  await cloudinary.uploader.destroy(public_id, { resource_type: 'video' });
-  const user = await User.findByIdAndUpdate(req.params.userId, { $pull: { media: { public_id } } }, { new: true });
-  res.json(user);
+app.get('/api/media', async (req, res) => res.json(await Media.find()));
+
+app.delete('/api/media/:id', async (req, res) => {
+    const item = await Media.findById(req.params.id);
+    if(item) { fs.removeSync(path.join(__dirname, 'public', item.url)); await Media.findByIdAndDelete(req.params.id); }
+    res.json({ success: true });
 });
 
-app.get('/api/messages/:u1/:u2', async (req, res) => {
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 60);
-  const storici = await Message.find({
-    $or: [ { senderId: req.params.u1, receiverId: req.params.u2 }, { senderId: req.params.u2, receiverId: req.params.u1 } ],
-    createdAt: { $gte: cutoff }
-  }).sort('createdAt');
-  res.json(storici);
-});
-
-// SOCKET.IO
+// --- CHAT REAL-TIME (ARCHIVIO 2 MESI) ---
 io.on('connection', (socket) => {
-  socket.on('join', (id) => socket.join(id));
-  socket.on('send_msg', async (data) => {
-    const msg = new Message(data);
-    await msg.save();
-    io.to(data.receiverId).emit('receive_msg', msg);
-  });
+    socket.on('join', (userId) => socket.join(userId));
+    
+    socket.on('get_history', async ({ me, to }) => {
+        const limit = new Date(); limit.setMonth(limit.getMonth() - 2);
+        const history = await Message.find({ 
+            $or:[{from:me,to:to},{from:to,to:me}], 
+            time:{$gte:limit} 
+        }).sort({time:1});
+        socket.emit('chat_history', history);
+    });
+
+    socket.on('send_msg', async (data) => {
+        const newMsg = new Message(data); await newMsg.save();
+        io.to(data.to).emit('new_msg', newMsg);
+    });
 });
 
-mongoose.connect(process.env.MONGO_URI).then(() => {
-  server.listen(process.env.PORT || 3000, () => console.log("✅ EnoHub Pro Online"));
-});
+server.listen(process.env.PORT || 3000, () => console.log('🚀 EnoHub Enterprise Live'));
