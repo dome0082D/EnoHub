@@ -1,35 +1,11 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accedi - EnoHub</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin:0; }
-        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2 style="color:#800000">Login EnoHub</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn" onclick="login()">ENTRA</button>
-        <p>Nuovo? <a href="register.html" style="color:#800000">Registrati</a></p>
-        <a href="../index.html" style="color:#666; font-size:14px; text-decoration:none;">← Home</a>
-    </div>
-    <script>
-        async function login() {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
-            });
-            const data = await res.json();
-            if(data.success) { localStorage.setItem('enohub_user', JSON.stringify(data.user)); location.href="../dashboard.html"; }
-            else alert("Dati errati");
-        }
-    </script>
-</body>
-</html>
+async function login() {
+    const res = await fetch('/api/login', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: email.value, password: password.value })
+    });
+    const data = await res.json();
+    if(data.success) { 
+        localStorage.setItem('enohub_user', JSON.stringify(data.user)); 
+        location.href="../dashboard.html"; 
+    } else alert("Dati errati!");
+}
