@@ -6,8 +6,8 @@
     <style>
         body { font-family: sans-serif; margin: 0; background: #fafafa; }
         nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-size: 24px; font-weight: bold; color: #800000; text-decoration: none; }
-        .btn { background: #800000; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; font-weight: bold; }
+        .logo { font-size: 24px; font-weight: bold; color: #8a1c1c; text-decoration: none; }
+        .btn { background: #8a1c1c; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: bold; }
         .hero { text-align: center; padding: 120px 20px; }
     </style>
 </head>
@@ -17,16 +17,20 @@
         <div id="nav-links"><a href="auth/login.html" class="btn">Accedi</a></div>
     </nav>
     <div class="hero">
-        <h1 id="welcome">Eccellenza del Vino Digitale</h1>
+        <h1 id="welcome" style="font-size:36px; color:#333;">Eccellenza del Vino Digitale</h1>
+        <p style="color:#666; font-size:18px; margin-bottom:40px;">La rete dedicata a Sommelier e Cantine.</p>
         <div id="cta"><a href="auth/register.html" class="btn" style="background:#444">Registrati Ora</a></div>
     </div>
     <script>
-        const user = JSON.parse(localStorage.getItem('enohub_user'));
-        if(user) {
-            document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Il mio Profilo</a>`;
-            document.getElementById('welcome').innerText = `Bentornato, ${user.nome}`;
-            document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`;
-        }
+        try {
+            const raw = localStorage.getItem('enohub_user');
+            if(raw && raw !== "undefined") {
+                const user = JSON.parse(raw);
+                document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Il mio Profilo</a>`;
+                document.getElementById('welcome').innerText = `Bentornato, ${user.nome}`;
+                document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`;
+            }
+        } catch(e) { localStorage.removeItem('enohub_user'); }
     </script>
 </body>
 </html>
