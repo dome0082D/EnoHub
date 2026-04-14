@@ -2,69 +2,49 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub - La Rete dei Sommelier e delle Cantine</title>
+    <title>EnoHub - Home</title>
     <style>
-        /* CSS Elegante per la Navbar */
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fdfdfd; }
-        nav { background: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { font-size: 24px; font-weight: bold; color: #800000; text-decoration: none; }
-        .nav-links a { margin-left: 20px; text-decoration: none; color: #444; font-weight: 500; transition: 0.3s; }
-        .nav-links a:hover { color: #800000; }
-        .btn-profile { background: #800000; color: white !important; padding: 8px 18px; border-radius: 5px; }
-        
-        /* Hero Section */
-        .hero { text-align: center; padding: 100px 20px; background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); background-size: cover; }
-        h1 { font-size: 48px; color: #333; }
-        .hero p { font-size: 20px; color: #666; max-width: 600px; margin: 20px auto; }
-    </script>
+        nav { display: flex; justify-content: space-between; padding: 20px 50px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); align-items: center; }
+        .logo { color: #800000; font-size: 26px; font-weight: bold; text-decoration: none; }
+        .btn-vin { background: #800000; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    </style>
 </head>
 <body>
-
     <nav>
         <a href="index.html" class="logo">EnoHub</a>
-        <div class="nav-links" id="nav-menu">
-            <a href="#about">Chi Siamo</a>
-            <a href="auth/login.html" id="login-link">Accedi</a>
-            <a href="auth/register.html" id="register-link" class="btn-profile">Registrati</a>
+        <div id="nav-links">
+            <a href="auth/login.html" style="margin-right:20px; text-decoration:none; color:#333;">Accedi</a>
+            <a href="auth/register.html" class="btn-vin">Registrati</a>
         </div>
     </nav>
-
-    <header class="hero">
-        <h1>Connettiamo l'Eccellenza del Vino</h1>
-        <p>La piattaforma dove le cantine incontrano i migliori sommelier per consulenze, eventi e degustazioni professionali.</p>
-        <div id="hero-action">
-            <a href="auth/register.html" style="background:#800000; color:white; padding:15px 30px; text-decoration:none; border-radius:5px; font-weight:bold;">Inizia Ora</a>
+    <div style="text-align: center; padding: 100px 20px;">
+        <h1 id="welcome-text">L'Eccellenza del Vino Digitale</h1>
+        <div id="hero-action" style="margin-top:40px;">
+            <a href="auth/register.html" class="btn-vin">Inizia Ora</a>
         </div>
-    </header>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Controlliamo se nella memoria del browser c'è un utente loggato
+            // Persistenza LocalStorage: Lettura dati
             const userData = localStorage.getItem('enohub_user');
-            
             if (userData) {
                 const user = JSON.parse(userData);
-                const navMenu = document.getElementById('nav-menu');
-                const heroAction = document.getElementById('hero-action');
-
-                // 2. TRASFORMAZIONE REATTIVA: Se loggato, cambiamo i tasti
-                navMenu.innerHTML = `
-                    <a href="#about">Esplora</a>
-                    <a href="dashboard.html" class="btn-profile">Il mio Profilo (${user.nome})</a>
-                    <a href="#" onclick="logout()" style="color: #999; font-size: 0.8em;">Esci</a>
+                // Navigazione Condizionale
+                document.getElementById('nav-links').innerHTML = `
+                    <a href="dashboard.html" class="btn-vin">Il mio Profilo (${user.nome})</a>
+                    <button onclick="logout()" style="border:none; background:none; color:red; cursor:pointer; margin-left:15px;">Esci</button>
                 `;
-
-                // Cambiamo anche il bottone centrale nella Home
-                heroAction.innerHTML = `
-                    <a href="dashboard.html" style="background:#800000; color:white; padding:15px 30px; text-decoration:none; border-radius:5px; font-weight:bold;">Vai alla tua Dashboard</a>
-                `;
+                // Identità Dinamica nella Home
+                document.getElementById('welcome-text').innerText = `Bentornato, ${user.nome}`;
+                document.getElementById('hero-action').style.display = 'none';
             }
         });
 
-        function logout() {
-            localStorage.clear(); // Svuota la memoria
-            location.reload(); // Ricarica la pagina per tornare alla versione "ospite"
+        function logout() { 
+            localStorage.clear(); 
+            location.reload(); 
         }
     </script>
 </body>
