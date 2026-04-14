@@ -1,16 +1,10 @@
 {
-  "name": "enohub-enterprise",
-  "version": "5.0.0",
-  "description": "EnoHub Enterprise - Definitive Edition",
+  "name": "enohub-enterprise-6",
+  "version": "6.0.0",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
-    "express": "^4.19.2",
-    "socket.io": "^4.7.5",
-    "mongoose": "^8.3.1",
-    "multer": "^1.4.5-lts.1",
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "fs-extra": "^11.2.0"
+    "express": "^4.19.2", "socket.io": "^4.7.5", "mongoose": "^8.3.1",
+    "multer": "^1.4.5-lts.1", "bcrypt": "^5.1.1", "cors": "^2.8.5", "fs-extra": "^11.2.0"
   }
 }
