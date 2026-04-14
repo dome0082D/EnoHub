@@ -5,110 +5,163 @@
     <title>EnoHub - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
-        .header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; }
-        .sidebar { width: 250px; background: #2c3e50; color: white; height: 100%; padding: 20px; }
-        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        :root { --main: #800000; --side: #2c3e50; }
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .nav { background: white; padding: 10px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; align-items: center; }
+        .main { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 220px; background: var(--side); color: white; padding: 20px; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
         .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .progress-bar { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; display:none; }
-        .progress-fill { background: #800000; height: 100%; width: 0%; border-radius: 5px; }
-        .chat-box { position: fixed; bottom: 10px; right: 10px; width: 300px; height: 400px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display:none; flex-direction: column; }
+        /* Barra Caricamento */
+        .progress { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; display:none; }
+        .progress-fill { background: var(--main); height: 100%; width: 0%; border-radius: 5px; transition: 0.3s; }
+        /* Chat Compatta */
+        .chat-ui { position: fixed; bottom: 10px; right: 10px; width: 280px; height: 380px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius: 10px; display:none; flex-direction: column; z-index: 1000; }
         video { width: 100%; border-radius: 5px; }
-        @media (max-width: 700px) { .sidebar { display: none; } }
+        .menu-btn { display: block; width: 100%; padding: 15px 0; color: white; text-align: left; background: none; border: none; border-bottom: 1px solid #3e4f5f; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="index.html" style="color:#800000; font-weight:bold; text-decoration:none;">EnoHub Home</a>
-        <span id="user-head"></span>
+    <div class="nav">
+        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none;">EnoHub Home</a>
+        <span id="user-badge" style="color:#666"></span>
     </div>
-    <div style="display:flex; flex:1">
+    <div class="main">
         <div class="sidebar">
-            <div onclick="showSection('profile')" style="padding:15px; cursor:pointer">Mio Profilo</div>
-            <div onclick="showSection('media')" style="padding:15px; cursor:pointer">Libreria Media</div>
-            <div onclick="showSection('settings')" style="padding:15px; cursor:pointer">Impostazioni</div>
-            <div onclick="logout()" style="padding:15px; cursor:pointer; color:#e74c3c">Esci</div>
+            <button class="menu-btn" onclick="show('profile')">Profilo</button>
+            <button class="menu-btn" onclick="show('media')">Media & Video</button>
+            <button class="menu-btn" onclick="show('chat')">Esplora Utenti</button>
+            <button class="menu-btn" onclick="show('settings')">Impostazioni Profilo</button>
+            <button class="menu-btn" onclick="logout()" style="color:#e74c3c">Disconnetti</button>
         </div>
         <div class="content">
             <section id="sec-profile" class="card">
-                <h2 id="prof-nome"></h2>
-                <p id="prof-bio"></p>
-                <button class="btn" onclick="alert('Usa la sidebar per esplorare utenti e avviare chat')">Avvia Chat Privata</button>
+                <h2 id="p-nome"></h2>
+                <p id="p-bio"></p>
+                <button class="btn" style="background:var(--main); color:white; border:none; padding:10px; border-radius:5px" onclick="show('chat')">Inizia Chat</button>
             </section>
             <section id="sec-media" class="card" style="display:none">
-                <h3>Caricamento Media con %</h3>
-                <input type="file" id="f-in">
-                <div class="progress-bar" id="p-bar"><div class="progress-fill" id="p-fill"></div></div>
-                <button onclick="upload()">CARICA FILE</button>
-                <div id="media-list"></div>
+                <h3>Carica File (Percentuale attiva)</h3>
+                <input type="file" id="media-in">
+                <div class="progress" id="p-bar"><div class="progress-fill" id="p-fill"></div></div>
+                <button onclick="up()" style="margin-top:10px">AVVIA UPLOAD</button>
+                <div id="m-list" style="margin-top:20px"></div>
+            </section>
+            <section id="sec-chat" class="card" style="display:none">
+                <h3>Scegli un utente per la Chat Privata</h3>
+                <div id="u-list"></div>
             </section>
             <section id="sec-settings" class="card" style="display:none">
-                <h3>Cambia Bio / Profilo</h3>
-                <textarea id="set-bio" style="width:100%; height:100px"></textarea><br><br>
-                <button onclick="saveSettings()">Salva Impostazioni</button>
+                <h3>Cambia le tue informazioni</h3>
+                <textarea id="set-bio" style="width:100%; height:80px" placeholder="Scrivi la tua bio professionale..."></textarea><br><br>
+                <button onclick="saveSet()" style="background:var(--main); color:white; border:none; padding:10px">Salva Modifiche</button>
             </section>
         </div>
     </div>
 
-    <div id="chat-ui" class="chat-box">
-        <div style="background:#800000; color:white; padding:10px">Chat</div>
-        <div id="chat-msgs" style="flex:1; overflow-y:auto; padding:10px"></div>
+    <div id="chat-win" class="chat-ui">
+        <div style="background:var(--main); color:white; padding:10px; border-radius:10px 10px 0 0; display:flex; justify-content:space-between">
+            <span id="chat-title">Chat</span>
+            <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; cursor:pointer">X</button>
+        </div>
+        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:10px; font-size:13px; background:#fefefe"></div>
         <div style="display:flex; padding:10px; border-top:1px solid #eee">
-            <input type="text" id="chat-in" style="flex:1">
-            <button onclick="send()">></button>
+            <input type="text" id="c-in" style="flex:1; padding:5px" placeholder="Messaggio...">
+            <button onclick="send()" style="border:none; background:var(--main); color:white; padding:5px 10px; border-radius:3px">></button>
         </div>
     </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem('enohub_user'));
-        const socket = io(); socket.emit('join', user.id);
+        if(!user) window.location.href = "auth/login.html";
+        const socket = io(); socket.emit('join', user._id);
 
-        function showSection(id) {
+        function show(id) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             document.getElementById('sec-' + id).style.display = 'block';
-            if(id === 'media') loadMedia();
+            if(id === 'media') loadM(); if(id === 'chat') loadU();
         }
 
-        function upload() {
-            const file = document.getElementById('f-in').files[0];
-            const fd = new FormData(); fd.append('file', file); fd.append('ownerId', user.id);
+        // --- UPLOAD CON % REALE ---
+        function up() {
+            const f = document.getElementById('media-in').files[0]; if(!f) return;
+            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
             const xhr = new XMLHttpRequest();
-            document.getElementById('p-bar').style.display='block';
+            document.getElementById('p-bar').style.display = 'block';
             xhr.upload.onprogress = (e) => document.getElementById('p-fill').style.width = Math.round((e.loaded/e.total)*100)+'%';
-            xhr.onload = () => { alert("Caricato!"); loadMedia(); };
+            xhr.onload = () => { alert("Upload Completato!"); loadM(); document.getElementById('p-bar').style.display = 'none'; };
             xhr.open('POST', '/api/upload'); xhr.send(fd);
         }
 
-        async function loadMedia() {
-            const res = await fetch('/api/media'); const items = await res.json();
-            const list = document.getElementById('media-list'); list.innerHTML = '';
+        async function loadM() {
+            const r = await fetch('/api/media'); const items = await r.json();
+            const list = document.getElementById('m-list'); list.innerHTML = '';
             items.forEach(m => {
-                const isVid = m.type.includes('video');
+                const isV = m.type.includes('video');
                 list.innerHTML += `<div class="card">
                     <b>${m.name}</b><br>
-                    ${isVid ? `<video id="v-${m.id}" src="${m.url}" controls></video><br>
+                    ${isV ? `<video id="v-${m.id}" src="${m.url}" controls></video><br>
                     <button onclick="document.getElementById('v-${m.id}').currentTime-=10">-10s</button>
                     <button onclick="document.getElementById('v-${m.id}').currentTime+=10">+10s</button>` : `<img src="${m.url}" style="width:100px">`}
-                    ${m.ownerId === user.id ? `<br><button onclick="delMedia('${m.id}')">Elimina</button>` : ''}
+                    ${m.ownerId === user._id ? `<button onclick="delM('${m.id}')" style="color:red; margin-left:10px; border:none; background:none; cursor:pointer">Elimina</button>` : ''}
                 </div>`;
             });
         }
 
-        async function delMedia(id) { await fetch('/api/media/'+id, {method:'DELETE'}); loadMedia(); }
-
-        async function saveSettings() {
-            const res = await fetch('/api/user/'+user.id, {
-                method:'PUT', headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({ bio: document.getElementById('set-bio').value })
+        async function loadU() {
+            const r = await fetch('/api/users'); const users = await r.json();
+            const list = document.getElementById('u-list'); list.innerHTML = '';
+            users.filter(u => u._id !== user._id).forEach(u => {
+                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between">
+                    <span>${u.nome} (${u.tipo})</span> 
+                    <button onclick="openChat('${u._id}','${u.nome}')">Messaggio Privato</button>
+                </div>`;
             });
-            const data = await res.json();
-            localStorage.setItem('enohub_user', JSON.stringify(data.user));
-            location.reload();
         }
 
-        function logout() { localStorage.clear(); location.href="../index.html"; }
-        document.getElementById('prof-nome').innerText = user.nome;
-        document.getElementById('user-head').innerText = user.nome;
+        let curChat = null;
+        function openChat(id, nome) {
+            curChat = id; document.getElementById('chat-win').style.display = 'flex';
+            document.getElementById('chat-title').innerText = nome;
+            socket.emit('get_history', { me: user._id, to: id });
+        }
+
+        function send() {
+            const t = document.getElementById('c-in').value; if(!t) return;
+            const m = { from: user._id, to: curChat, text: t, fromName: user.nome };
+            socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value = '';
+        }
+
+        socket.on('chat_history', (ms) => {
+            const b = document.getElementById('c-msgs'); b.innerHTML = '';
+            ms.forEach(m => appendM(m, m.from === user._id));
+        });
+
+        socket.on('new_msg', (m) => { if(m.from === curChat) appendM(m, false); });
+
+        function appendM(m, me) {
+            const b = document.getElementById('c-msgs');
+            b.innerHTML += `<div style="text-align:${me?'right':'left'}; margin-bottom:8px">
+                <span style="background:${me?'#800000':'#eee'}; color:${me?'white':'black'}; padding:5px 10px; border-radius:10px; display:inline-block">${m.text}</span>
+            </div>`;
+            b.scrollTop = b.scrollHeight;
+        }
+
+        async function saveSet() {
+            const r = await fetch('/api/user/'+user._id, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ bio: document.getElementById('set-bio').value })
+            });
+            const d = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(d.user)); location.reload();
+        }
+
+        function delM(id) { if(confirm("Cancellare file?")) fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
+        function logout() { localStorage.clear(); location.href="index.html"; }
+
+        document.getElementById('p-nome').innerText = user.nome;
+        document.getElementById('p-bio').innerText = user.bio || "Bio non compilata.";
+        document.getElementById('user-badge').innerText = user.nome;
+        document.getElementById('set-bio').value = user.bio || "";
     </script>
 </body>
 </html>
