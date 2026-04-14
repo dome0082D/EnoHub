@@ -2,102 +2,211 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>EnoHub - Area Riservata</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .profile-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 40px; }
-        .avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #800000; }
-        .btn-msg { background: #800000; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top:10px; }
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
         
-        .chat-container { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        #messages { background: #fafafa; border: 1px solid #ddd; height: 250px; overflow-y: auto; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-        .chat-input-area { display: flex; gap: 10px; }
-        select, input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .msg-me { text-align: right; color: #800000; margin-bottom: 5px; }
-        .msg-other { text-align: left; color: #333; margin-bottom: 5px; }
+        /* Sidebar Menu */
+        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; }
+        .menu-item { padding: 15px; cursor: pointer; border-bottom: 1px solid #34495e; }
+        .menu-item:hover { background: #34495e; }
+
+        /* Content Area */
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Video & Media */
+        video { width: 100%; max-width: 600px; border-radius: 8px; }
+        .progress-bar { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; display:none; }
+        .progress-fill { background: #800000; height: 100%; width: 0%; border-radius: 5px; }
+
+        /* Floating Chat */
+        .chat-box { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display:none; flex-direction: column; }
+        .chat-header { background: #800000; color: white; padding: 10px; border-radius: 10px 10px 0 0; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 10px; font-size: 14px; }
+        .chat-input { display: flex; padding: 10px; border-top: 1px solid #eee; }
+
+        @media (max-width: 768px) { .sidebar { display:none; } }
     </style>
 </head>
 <body>
-    <div style="max-width:800px; margin: 0 auto 15px; display: flex; justify-content: space-between;">
-        <a href="index.html" style="color:#800000; text-decoration:none; font-weight:bold;">← Home</a>
-        <span id="header-user" style="color:#666;"></span>
-    </div>
-    
-    <div class="profile-card">
-        <div style="display:flex; align-items:center; gap:30px;">
-            <img src="https://via.placeholder.com/120" class="avatar">
-            <div>
-                <h1 id="display-nome">Caricamento...</h1>
-                <p id="display-tipo" style="color:#666; font-size:18px; margin:0;"></p>
-                <p id="display-bio" style="color:#444; margin-top:10px;"></p>
-            </div>
-        </div>
 
-        <div class="chat-container">
-            <h3 style="color:#800000;">Messaggistica Privata Real-Time</h3>
-            <div id="messages"></div>
+<div class="header">
+    <a href="index.html" style="font-weight:bold; color:#800000; text-decoration:none;">EnoHub Home</a>
+    <div id="user-info"></div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar">
+        <div class="menu-item" onclick="showSection('profile')">Mio Profilo</div>
+        <div class="menu-item" onclick="showSection('media')">Libreria Media</div>
+        <div class="menu-item" onclick="showSection('users')">Esplora Utenti</div>
+        <div class="menu-item" onclick="showSection('settings')">Impostazioni</div>
+    </div>
+
+    <div class="content">
+        <section id="sec-profile" class="card">
+            <h2 id="prof-name">Caricamento...</h2>
+            <p id="prof-bio"></p>
+        </section>
+
+        <section id="sec-media" class="card" style="display:none;">
+            <h3>Carica Video/Documenti</h3>
+            <input type="file" id="file-input">
+            <div class="progress-bar" id="p-bar"><div class="progress-fill" id="p-fill"></div></div>
+            <button class="btn" onclick="uploadFile()">Carica (Mostra %)</button>
+            <hr>
+            <div id="media-list"></div>
+        </section>
+
+        <section id="sec-settings" class="card" style="display:none;">
+            <h3>Impostazioni Profilo</h3>
+            <textarea id="set-bio" placeholder="Cambia la tua Bio..."></textarea><br><br>
+            <button class="btn" onclick="saveSettings()">Salva Modifiche</button>
+        </section>
+    </div>
+</div>
+
+<div id="chat-ui" class="chat-box">
+    <div class="chat-header" id="chat-title">Chat</div>
+    <div id="chat-messages"></div>
+    <div class="chat-input">
+        <input type="text" id="chat-in" style="flex:1" placeholder="Scrivi...">
+        <button onclick="sendMsg()">></button>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('enohub_user'));
+    if(!user) window.location.href = "auth/login.html";
+
+    const socket = io();
+    socket.emit('join', user.id);
+
+    function showSection(id) {
+        document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+        document.getElementById('sec-' + id).style.display = 'block';
+        if(id === 'media') loadMedia();
+    }
+
+    // --- LOGICA CARICAMENTO CON % ---
+    function uploadFile() {
+        const file = document.getElementById('file-input').files[0];
+        if(!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('ownerId', user.id);
+
+        const xhr = new XMLHttpRequest();
+        document.getElementById('p-bar').style.display = 'block';
+
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                document.getElementById('p-fill').style.width = percent + '%';
+            }
+        };
+
+        xhr.onload = () => {
+            alert("File caricato!");
+            document.getElementById('p-bar').style.display = 'none';
+            loadMedia();
+        };
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
+    }
+
+    // --- LIBRERIA MEDIA ---
+    async function loadMedia() {
+        const res = await fetch('/api/media');
+        const items = await res.json();
+        const list = document.getElementById('media-list');
+        list.innerHTML = '';
+        
+        items.forEach(m => {
+            const isVideo = m.type.includes('video');
+            const isImage = m.type.includes('image');
             
-            <div class="chat-input-area">
-                <select id="chat-target">
-                    <option value="">Seleziona un utente...</option>
-                </select>
-                <input type="text" id="chat-input" style="flex:1;" placeholder="Scrivi un messaggio...">
-                <button onclick="sendMsg()" class="btn-msg" style="margin:0;">Invia</button>
-            </div>
-        </div>
-    </div>
+            let html = `<div class="card"><h4>${m.name}</h4>`;
+            if(isVideo) {
+                html += `
+                    <video id="vid-${m.id}" src="${m.url}" controls></video><br>
+                    <button onclick="skip('${m.id}', -10)">-10s</button>
+                    <button onclick="skip('${m.id}', 10)">+10s</button>
+                `;
+            } else if(isImage) {
+                html += `<img src="${m.url}" style="width:100px;">`;
+            } else {
+                html += `<a href="${m.url}" target="_blank">Apri Documento</a>`;
+            }
 
-    <script>
-        // Persistenza e Identità Dinamica
-        const userData = localStorage.getItem('enohub_user');
-        if (!userData) { window.location.href = "auth/login.html"; }
-        const user = JSON.parse(userData);
-
-        let socket;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('display-nome').innerText = user.nome;
-            document.getElementById('display-tipo').innerText = user.tipo || "Membro EnoHub";
-            document.getElementById('display-bio').innerText = user.bio || "Bio non compilata.";
-            document.getElementById('header-user').innerText = "Accesso come: " + user.nome;
-
-            // Inizializza Socket
-            socket = io();
-            socket.emit('join', user.id);
-
-            // Ascolto Messaggi in Arrivo
-            socket.on('new_message', (d) => {
-                document.getElementById('messages').innerHTML += `<div class="msg-other"><b>${d.nomeMittente}:</b> ${d.testo}</div>`;
-                document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-            });
-
-            // Carica gli altri utenti per la chat
-            const res = await fetch('/api/users');
-            const users = await res.json();
-            const select = document.getElementById('chat-target');
-            users.forEach(u => {
-                if(u.id !== user.id) {
-                    select.innerHTML += `<option value="${u.id}">${u.nome} (${u.tipo})</option>`;
-                }
-            });
+            if(m.ownerId === user.id) {
+                html += `<br><button onclick="deleteMedia('${m.id}')" style="color:red">Elimina</button>`;
+            }
+            html += `</div>`;
+            list.innerHTML += html;
         });
+    }
 
-        function sendMsg() {
-            const inp = document.getElementById('chat-input');
-            const targetId = document.getElementById('chat-target').value;
-            
-            if (!targetId) return alert("Seleziona a chi inviare il messaggio!");
-            if (!inp.value.trim()) return;
+    function skip(id, sec) {
+        const v = document.getElementById('vid-' + id);
+        v.currentTime += sec;
+    }
 
-            const data = { mittenteId: user.id, nomeMittente: user.nome, destinatarioId: targetId, testo: inp.value };
-            
-            socket.emit('private_message', data);
-            
-            document.getElementById('messages').innerHTML += `<div class="msg-me"><b>Tu:</b> ${inp.value}</div>`;
-            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-            inp.value = "";
+    async function deleteMedia(id) {
+        if(confirm("Vuoi cancellare?")) {
+            await fetch('/api/media/' + id, { method: 'DELETE' });
+            loadMedia();
         }
-    </script>
+    }
+
+    // --- CHAT PRIVATA REATTIVA ---
+    let activeChat = null;
+    function openChat(targetId, targetNome) {
+        activeChat = targetId;
+        document.getElementById('chat-ui').style.display = 'flex';
+        document.getElementById('chat-title').innerText = "Chat con " + targetNome;
+        socket.emit('get_history', { me: user.id, to: targetId });
+    }
+
+    function sendMsg() {
+        const text = document.getElementById('chat-in').value;
+        if(!text) return;
+        const msg = { from: user.id, to: activeChat, text, fromName: user.nome };
+        socket.emit('send_msg', msg);
+        appendMsg(msg, true);
+        document.getElementById('chat-in').value = '';
+    }
+
+    socket.on('chat_history', (msgs) => {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = '';
+        msgs.forEach(m => appendMsg(m, m.from === user.id));
+    });
+
+    socket.on('new_msg', (m) => {
+        if(m.from === activeChat) appendMsg(m, false);
+        else alert("Nuovo messaggio da " + m.fromName);
+    });
+
+    function appendMsg(m, isMe) {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML += `<div style="text-align:${isMe?'right':'left'}">
+            <small>${new Date(m.time).toLocaleTimeString()}</small><br>
+            <b>${isMe?'Tu':m.fromName}:</b> ${m.text}
+        </div><hr>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // Inizializzazione
+    document.getElementById('prof-name').innerText = user.nome;
+    document.getElementById('user-info').innerText = user.nome + " (" + user.tipo + ")";
+</script>
 </body>
 </html>
