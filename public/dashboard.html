@@ -2,55 +2,102 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>EnoHub - Dashboard</title>
+    <title>EnoHub - Area Riservata</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .profile-card { max-width: 850px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .profile-header { display: flex; align-items: center; padding: 40px; border-bottom: 1px solid #eee; }
-        .avatar { width: 140px; height: 140px; border-radius: 50%; margin-right: 35px; border: 3px solid #800000; object-fit: cover; }
-        .btn-msg { background: #800000; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .row { display: grid; grid-template-columns: 180px 1fr; padding: 20px 40px; }
-        .label { color: #800000; font-weight: bold; text-transform: uppercase; font-size: 13px; }
+        .profile-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 40px; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #800000; }
+        .btn-msg { background: #800000; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top:10px; }
+        
+        .chat-container { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        #messages { background: #fafafa; border: 1px solid #ddd; height: 250px; overflow-y: auto; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .chat-input-area { display: flex; gap: 10px; }
+        select, input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .msg-me { text-align: right; color: #800000; margin-bottom: 5px; }
+        .msg-other { text-align: left; color: #333; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <div style="max-width:850px; margin: 0 auto 15px; display: flex; justify-content: space-between;">
-        <a href="index.html" style="color:#800000; text-decoration:none; font-weight:bold;">← Home Page</a>
-        <span id="header-user-name" style="color:#666;"></span>
+    <div style="max-width:800px; margin: 0 auto 15px; display: flex; justify-content: space-between;">
+        <a href="index.html" style="color:#800000; text-decoration:none; font-weight:bold;">← Home</a>
+        <span id="header-user" style="color:#666;"></span>
     </div>
     
     <div class="profile-card">
-        <div class="profile-header">
-            <img id="display-foto" src="https://via.placeholder.com/140" class="avatar">
-            <div class="header-info">
+        <div style="display:flex; align-items:center; gap:30px;">
+            <img src="https://via.placeholder.com/120" class="avatar">
+            <div>
                 <h1 id="display-nome">Caricamento...</h1>
-                <p id="display-tipo" style="color:#666; font-size:18px; margin: 5px 0;"></p>
-                <span style="color:#27ae60; font-weight:bold; font-size: 14px;">● Profilo Verificato EnoHub</span><br><br>
-                <button class="btn-msg" onclick="alert('Sistema di messaggistica attivo.')">Richiedi Contatto</button>
+                <p id="display-tipo" style="color:#666; font-size:18px; margin:0;"></p>
+                <p id="display-bio" style="color:#444; margin-top:10px;"></p>
             </div>
         </div>
-        <div class="row"><div class="label">Bio Professionale</div><div id="display-bio">Nessuna bio presente.</div></div>
-        <div class="row"><div class="label">Competenze</div><div id="display-tags">In attesa di dati...</div></div>
+
+        <div class="chat-container">
+            <h3 style="color:#800000;">Messaggistica Privata Real-Time</h3>
+            <div id="messages"></div>
+            
+            <div class="chat-input-area">
+                <select id="chat-target">
+                    <option value="">Seleziona un utente...</option>
+                </select>
+                <input type="text" id="chat-input" style="flex:1;" placeholder="Scrivi un messaggio...">
+                <button onclick="sendMsg()" class="btn-msg" style="margin:0;">Invia</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const socket = io();
-        document.addEventListener('DOMContentLoaded', () => {
-            const userData = localStorage.getItem('enohub_user');
-            if (!userData) { window.location.href = "auth/login.html"; return; }
-            
-            const user = JSON.parse(userData);
-            // Inserimento dati reali dell'utente
+        // Persistenza e Identità Dinamica
+        const userData = localStorage.getItem('enohub_user');
+        if (!userData) { window.location.href = "auth/login.html"; }
+        const user = JSON.parse(userData);
+
+        let socket;
+
+        document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('display-nome').innerText = user.nome;
-            document.getElementById('display-tipo').innerText = user.tipo || "Membro Professionista";
-            document.getElementById('display-bio').innerText = user.bio || "Biografia non ancora compilata.";
-            document.getElementById('header-user-name').innerText = `Loggato come: ${user.nome}`;
-            
-            if(user.foto) document.getElementById('display-foto').src = "/" + user.foto;
-            
+            document.getElementById('display-tipo').innerText = user.tipo || "Membro EnoHub";
+            document.getElementById('display-bio').innerText = user.bio || "Bio non compilata.";
+            document.getElementById('header-user').innerText = "Accesso come: " + user.nome;
+
+            // Inizializza Socket
+            socket = io();
             socket.emit('join', user.id);
+
+            // Ascolto Messaggi in Arrivo
+            socket.on('new_message', (d) => {
+                document.getElementById('messages').innerHTML += `<div class="msg-other"><b>${d.nomeMittente}:</b> ${d.testo}</div>`;
+                document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+            });
+
+            // Carica gli altri utenti per la chat
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            const select = document.getElementById('chat-target');
+            users.forEach(u => {
+                if(u.id !== user.id) {
+                    select.innerHTML += `<option value="${u.id}">${u.nome} (${u.tipo})</option>`;
+                }
+            });
         });
+
+        function sendMsg() {
+            const inp = document.getElementById('chat-input');
+            const targetId = document.getElementById('chat-target').value;
+            
+            if (!targetId) return alert("Seleziona a chi inviare il messaggio!");
+            if (!inp.value.trim()) return;
+
+            const data = { mittenteId: user.id, nomeMittente: user.nome, destinatarioId: targetId, testo: inp.value };
+            
+            socket.emit('private_message', data);
+            
+            document.getElementById('messages').innerHTML += `<div class="msg-me"><b>Tu:</b> ${inp.value}</div>`;
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+            inp.value = "";
+        }
     </script>
 </body>
 </html>
