@@ -5,31 +5,35 @@
     <title>EnoHub - Home</title>
     <style>
         :root { --wine: #800000; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }
-        .nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; margin: 0; background: #fafafa; }
+        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .logo { font-size: 24px; font-weight: bold; color: var(--wine); text-decoration: none; }
-        .btn { background: var(--wine); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+        .btn { background: var(--wine); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; font-weight: bold; }
         .hero { text-align: center; padding: 100px 20px; }
     </style>
 </head>
 <body>
-    <nav class="nav">
+    <nav>
         <a href="index.html" class="logo">EnoHub Home</a>
-        <div id="nav-links">
-            <a href="auth/login.html" class="btn">Accedi</a>
-        </div>
+        <div id="nav-links"><a href="auth/login.html" class="btn">Accedi</a></div>
     </nav>
     <div class="hero">
         <h1 id="welcome">Elite del Vino Digitale</h1>
-        <p>Sommelier e Cantine in un'unica rete professionale.</p>
         <div id="cta"><a href="auth/register.html" class="btn" style="background:#444">Registrati Ora</a></div>
     </div>
     <script>
-        const user = JSON.parse(localStorage.getItem('enohub_user'));
-        if(user) {
-            document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Area di ${user.nome}</a>`;
-            document.getElementById('welcome').innerText = `Bentornato, ${user.nome}`;
-            document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla tua Dashboard</a>`;
+        const rawUser = localStorage.getItem('enohub_user');
+        // Protezione contro l'errore SyntaxError: 'undefined'
+        if (rawUser && rawUser !== "undefined") {
+            try {
+                const user = JSON.parse(rawUser);
+                document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Area di ${user.nome}</a>`;
+                document.getElementById('welcome').innerText = `Bentornato, ${user.nome}`;
+                document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`;
+            } catch (e) {
+                console.error("Dati utente corrotti, resetto memoria.");
+                localStorage.removeItem('enohub_user');
+            }
         }
     </script>
 </body>
