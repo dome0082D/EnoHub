@@ -1,26 +1,56 @@
-<script>
-    async function login() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accedi - EnoHub</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+        .btn:hover { background: #600000; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="color:#800000; margin-top:0;">Login EnoHub</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn" onclick="login()">ENTRA</button>
+        <p style="margin-top:15px; font-size:14px; color:#666;">
+            Nuovo utente? <a href="register.html" style="color:#800000; font-weight:bold;">Registrati</a>
+        </p>
+        <p><a href="../index.html" style="color:#999; font-size:14px; text-decoration:none;">← Torna alla Home</a></p>
+    </div>
 
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-            const result = await res.json();
+            if(!email || !password) return alert("Inserisci email e password.");
 
-            if (result.success && result.user) {
-                // Salviamo i dati reali nel browser
-                localStorage.setItem('enohub_user', JSON.stringify(result.user));
-                window.location.href = "../dashboard.html";
-            } else {
-                alert("Email o password errati.");
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await res.json();
+                
+                if(result.success && result.user) { 
+                    // Salva i dati dell'utente per la dashboard
+                    localStorage.setItem('enohub_user', JSON.stringify(result.user)); 
+                    window.location.href = "../dashboard.html"; 
+                } else { 
+                    alert("Email o password non validi."); 
+                }
+            } catch (err) {
+                alert("Errore di connessione al server.");
             }
-        } catch (err) {
-            alert("Errore di connessione. Controlla i log di Render!");
         }
-    }
-</script>
+    </script>
+</body>
+</html>
