@@ -12,17 +12,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// --- CONNESSIONE DATABASE ---
-const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS';
-mongoose.connect(MONGO_URI).then(() => console.log('✅ DB CONNESSO')).catch(e => console.log('❌ ERR DB:', e.message));
+const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS_QUI';
+mongoose.connect(MONGO_URI).then(() => console.log('✅ DATABASE CONNESSO')).catch(e => console.log('❌ ERR DB:', e.message));
 
-// --- SCHEMA UTENTE COMPLETO ---
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
-    // Campi Sommelier
+    // Sommelier
     location: { type: String, default: "Italia" }, bio: { type: String, default: "" },
     specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" },
-    // Campi Cantina
+    // Cantina
     regione: { type: String, default: "" }, filosofia: { type: String, default: "" },
     sito: { type: String, default: "" }, storia: { type: String, default: "" }
 }));
@@ -49,7 +47,7 @@ app.post('/api/register', async (req, res) => {
         const hashed = await bcrypt.hash(req.body.password, 10);
         const newUser = new User({ ...req.body, password: hashed });
         await newUser.save(); res.json({ success: true });
-    } catch (e) { res.status(500).json({ success: false, error: "Email già in uso." }); }
+    } catch (e) { res.status(500).json({ success: false, error: "Email già in uso" }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -77,7 +75,7 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// --- CHAT 2 MESI ---
+// --- CHAT STORICO 2 MESI ---
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
     socket.on('get_history', async ({ me, to }) => {
