@@ -1,41 +1,37 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EnoHub - Home</title>
     <style>
-        :root { --main: #800000; --bg: #fdfdfd; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); }
+        :root { --wine: #800000; }
+        body { font-family: sans-serif; margin:0; background:#fdfdfd; }
         nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .btn { background: var(--main); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; }
-        .hero { text-align: center; padding: 100px 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--wine); text-decoration: none; }
+        .btn { background: var(--wine); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; border:none; cursor:pointer; }
     </style>
 </head>
 <body>
     <nav>
-        <a href="index.html" style="font-size: 24px; font-weight: bold; color: var(--main); text-decoration: none;">EnoHub</a>
+        <a href="index.html" class="logo">EnoHub Home</a>
         <div id="nav-links">
             <a href="auth/login.html" class="btn">Accedi</a>
         </div>
     </nav>
-    <div class="hero">
-        <h1 id="welcome-text">Benvenuti su EnoHub</h1>
-        <p>La rete professionale per Sommelier e Cantine.</p>
-        <div id="cta"></div>
+    <div style="text-align:center; padding:100px 20px;">
+        <h1 id="welcome-text">Elite del Vino Digitale</h1>
+        <p>Sommelier e Cantine in un'unica rete professionale.</p>
+        <div id="cta">
+            <a href="auth/register.html" class="btn" style="background:#444">Registrati Ora</a>
+        </div>
     </div>
-
     <script>
         const user = JSON.parse(localStorage.getItem('enohub_user'));
         if(user) {
-            document.getElementById('nav-links').innerHTML = `
-                <a href="dashboard.html" style="margin-right:15px; text-decoration:none; color:var(--main);">Il mio Profilo</a>
-                <button onclick="logout()" class="btn" style="background:#555">Esci</button>
-            `;
+            document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Area di ${user.nome}</a>`;
             document.getElementById('welcome-text').innerText = `Bentornato, ${user.nome}`;
-            document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`;
+            document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla tua Dashboard</a>`;
         }
-        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
