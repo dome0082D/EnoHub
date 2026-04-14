@@ -1,40 +1,147 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub - Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - Profilo Professionale</title>
     <style>
-        :root { --wine: #800000; }
-        body { font-family: sans-serif; margin: 0; background: #fafafa; }
-        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-size: 24px; font-weight: bold; color: var(--wine); text-decoration: none; }
-        .btn { background: var(--wine); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; font-weight: bold; }
-        .hero { text-align: center; padding: 100px 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #fdfdfd; color: #333; }
+        .nav { position: sticky; top: 0; background: #800000; color: white; display: flex; justify-content: space-around; padding: 15px; z-index: 1000; }
+        .nav b { cursor: pointer; }
+        .page { display: none; padding: 20px; max-width: 900px; margin: auto; }
+        .active { display: block; }
+        
+        /* DESIGN PROFILO IDENTICO ALLA FOTO */
+        .profile-container { background: white; border-radius: 4px; border: 1px solid #efefef; overflow: hidden; margin-top: 20px; }
+        .profile-header { display: flex; padding: 40px; align-items: center; gap: 40px; }
+        .profile-pic { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+        .profile-main-info h1 { margin: 0; font-size: 32px; font-weight: 500; }
+        .profile-sub { color: #666; font-size: 18px; margin: 8px 0; }
+        .profile-loc { color: #999; font-size: 14px; margin-bottom: 12px; }
+        .status-tag { font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+        .status-online { color: #2e7d32; } .status-offline { color: #800000; }
+        .contact-btn { background: #800000; color: white; border: none; padding: 10px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+        .profile-details { padding: 40px; border-top: 1px solid #f0f0f0; }
+        .detail-row { display: flex; margin-bottom: 35px; }
+        .detail-label { width: 160px; color: #800000; font-weight: bold; text-align: right; padding-right: 25px; border-right: 2px solid #f0f0f0; margin-right: 25px; }
+        .detail-content { flex: 1; font-size: 15px; line-height: 1.6; color: #444; }
+        
+        .spec-tag { display: inline-block; background: #f5f0ed; padding: 6px 14px; border-radius: 20px; margin-right: 8px; font-size: 13px; color: #555; }
+        .cert-list { margin: 0; padding-left: 18px; color: #800000; }
+        .cert-list li span { color: #444; }
+
+        .notes-section { padding: 20px 40px; background: #fff; border-top: 1px solid #f0f0f0; }
+        .notes-section h2 { color: #800000; font-size: 20px; }
+
+        /* Form e Chat */
+        .form-card { background: white; padding: 25px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #800000; color: white; font-weight: bold; border: none; cursor: pointer; }
+        #prog-bg { width: 100%; background: #eee; display: none; margin: 10px 0; height: 10px; border-radius: 5px; overflow: hidden; }
+        #prog-bar { height: 100%; width: 0%; background: #2e7d32; }
+        
+        .chat-split { display: flex; gap: 20px; height: 500px; }
+        .u-list { width: 250px; background: white; border: 1px solid #ddd; overflow-y: auto; border-radius: 8px; }
+        .u-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .u-item img { width: 30px; height: 30px; border-radius: 50%; }
+        .chat-box-main { flex: 1; background: white; border: 1px solid #ddd; border-radius: 8px; display: flex; flex-direction: column; }
+        #msg-area { flex: 1; overflow-y: auto; padding: 15px; }
+        .msg { padding: 10px; border-radius: 6px; margin-bottom: 8px; max-width: 70%; }
+        .msg-m { background: #e3f2fd; align-self: flex-end; margin-left: auto; }
+        .msg-s { background: #f1f1f1; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html" class="logo">EnoHub Home</a>
-        <div id="nav-links"><a href="auth/login.html" class="btn">Accedi</a></div>
-    </nav>
-    <div class="hero">
-        <h1 id="welcome">Elite del Vino Digitale</h1>
-        <div id="cta"><a href="auth/register.html" class="btn" style="background:#444">Registrati Ora</a></div>
+
+<div class="nav">
+    <b onclick="nav('home')">🏠 Home</b>
+    <b id="n-chat" style="display:none" onclick="nav('chat')">💬 Chat</b>
+    <b id="n-prof" style="display:none" onclick="nav('profile')">👤 Profilo</b>
+    <b id="n-out" style="display:none" onclick="logout()">🚪 Esci</b>
+</div>
+
+<div id="home" class="page active">
+    <div id="auth-panel" class="form-card" style="max-width: 400px; margin: 50px auto;">
+        <h2 style="text-align: center; color: #800000;">EnoHub Login</h2>
+        <input type="email" id="l-mail" placeholder="Email">
+        <input type="password" id="l-pass" placeholder="Password">
+        <button onclick="login()">ACCEDI</button>
+        <p style="text-align: center;">Oppure crea un account</p>
+        <input type="text" id="r-name" placeholder="Nome e Cognome">
+        <input type="email" id="r-mail" placeholder="Email">
+        <input type="password" id="r-pass" placeholder="Password">
+        <button onclick="register()" style="background: #444;">REGISTRATI</button>
     </div>
-    <script>
-        const rawUser = localStorage.getItem('enohub_user');
-        // Protezione contro l'errore SyntaxError: 'undefined'
-        if (rawUser && rawUser !== "undefined") {
-            try {
-                const user = JSON.parse(rawUser);
-                document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Area di ${user.nome}</a>`;
-                document.getElementById('welcome').innerText = `Bentornato, ${user.nome}`;
-                document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`;
-            } catch (e) {
-                console.error("Dati utente corrotti, resetto memoria.");
-                localStorage.removeItem('enohub_user');
-            }
-        }
-    </script>
+    <div id="welcome" style="display:none; text-align:center;">
+        <h1 id="w-name"></h1>
+        <p>Il tuo spazio professionale è pronto.</p>
+    </div>
+</div>
+
+<div id="profile" class="page">
+    <div class="profile-container">
+        <div class="profile-header">
+            <img id="p-img" class="profile-pic" src="">
+            <div class="profile-main-info">
+                <h1 id="p-name">Caricamento...</h1>
+                <p class="profile-sub" id="p-title"></p>
+                <p class="profile-loc" id="p-loc"></p>
+                <div id="p-status" class="status-tag"></div>
+                <button class="contact-btn">Richiedi Contatto</button>
+            </div>
+        </div>
+        <div class="profile-details">
+            <div class="detail-row">
+                <div class="detail-label">Bio</div>
+                <div class="detail-content" id="p-bio"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Specializzazioni</div>
+                <div class="detail-content" id="p-specs"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Certificazioni</div>
+                <div class="detail-content"><ul class="cert-list" id="p-certs"></ul></div>
+            </div>
+        </div>
+        <div class="notes-section">
+            <h2>Le mie Note di Degustazione</h2>
+            <hr style="border:0; border-top:1px solid #eee;">
+        </div>
+    </div>
+
+    <div class="form-card" style="margin-top:40px;">
+        <h3>🛠️ Gestione Profilo Reale</h3>
+        <input type="text" id="e-title" placeholder="Titolo Professionale">
+        <input type="text" id="e-loc" placeholder="Località (es: Milano, Italia)">
+        <textarea id="e-bio" placeholder="Bio completa..."></textarea>
+        <input type="text" id="e-specs" placeholder="Specializzazioni (separate da virgola)">
+        <input type="text" id="e-certs" placeholder="Certificazioni (separate da virgola)">
+        <button onclick="saveProfile()">SALVA MODIFICHE</button>
+        <hr>
+        <h4>Carica Foto Profilo o Video Degustazione</h4>
+        <input type="file" id="f-in">
+        <button onclick="upload()" style="background:#444;">CARICA FILE</button>
+        <div id="prog-bg"><div id="prog-bar"></div></div>
+        <div id="gallery" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;"></div>
+    </div>
+</div>
+
+<div id="chat" class="page">
+    <div class="chat-split">
+        <div class="u-list" id="u-list"></div>
+        <div class="chat-box-main">
+            <div id="msg-area"></div>
+            <div style="padding:10px; display:flex; gap:10px; border-top:1px solid #eee;">
+                <input type="text" id="chat-in" placeholder="Scrivi un messaggio..." disabled>
+                <button onclick="sendMsg()" id="send-btn" disabled style="width:100px;">INVIA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
