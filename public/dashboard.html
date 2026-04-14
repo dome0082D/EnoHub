@@ -2,100 +2,140 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub - Profilo Professionale</title>
+    <title>EnoHub - Il Mio Profilo</title>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .profile-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .profile-header { display: flex; align-items: center; padding: 40px; border-bottom: 1px solid #eee; }
-        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 30px; border: 3px solid #eee; }
-        .header-info h1 { margin: 0; color: #333; font-size: 28px; }
-        .title { color: #666; margin: 5px 0; font-size: 18px; }
-        .location { color: #888; font-size: 14px; margin-bottom: 15px; }
-        .badge { color: #1a7f37; font-weight: bold; font-size: 14px; display: block; margin-bottom: 15px; }
-        .btn-contatto { background-color: #800000; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .profile-details { padding: 40px; }
-        .detail-row { display: flex; margin-bottom: 25px; }
-        .detail-row strong { width: 150px; color: #800000; font-size: 16px; text-transform: uppercase; }
-        .detail-row p { margin: 0; flex: 1; color: #444; line-height: 1.6; }
-        .tags { display: flex; gap: 10px; flex-wrap: wrap; }
-        .tag { background: #f0f0f0; padding: 5px 15px; border-radius: 20px; font-size: 13px; color: #555; }
-        .nav-bar { max-width: 800px; margin: 0 auto 20px; display: flex; justify-content: flex-end; }
-        .btn-logout { background: none; border: none; color: #666; cursor: pointer; text-decoration: underline; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .nav-bar { max-width: 900px; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-bar a { text-decoration: none; color: #800000; font-weight: bold; }
+        
+        .profile-card { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        
+        .profile-header { display: flex; align-items: center; padding: 50px; border-bottom: 1px solid #f0f0f0; background: linear-gradient(to right, #ffffff, #fffafa); }
+        .avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; margin-right: 40px; border: 4px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .header-info h1 { margin: 0; color: #2d2d2d; font-size: 32px; }
+        .title { color: #666; margin: 8px 0; font-size: 20px; font-weight: 300; }
+        .location { color: #999; font-size: 15px; margin-bottom: 20px; }
+        .badge { color: #27ae60; font-weight: bold; font-size: 14px; display: block; margin-bottom: 20px; }
+        
+        .btn-contatto { background-color: #800000; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-contatto:hover { background-color: #a00000; }
+
+        .profile-details { padding: 50px; display: grid; grid-template-columns: 150px 1fr; gap: 30px; }
+        .detail-label { color: #800000; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+        .detail-content { color: #444; line-height: 1.8; font-size: 16px; }
+
+        .tag { background: #f0f0f0; padding: 6px 18px; border-radius: 20px; font-size: 14px; color: #555; display: inline-block; margin: 0 8px 8px 0; }
+        
+        /* Stili Chat Rapida */
+        .chat-overlay { position: fixed; bottom: 20px; right: 20px; width: 300px; background: white; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); display: none; flex-direction: column; }
+        .chat-header { background: #800000; color: white; padding: 15px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; }
+        #chat-messages { height: 250px; overflow-y: auto; padding: 15px; font-size: 14px; }
+        .chat-input { display: flex; padding: 10px; border-top: 1px solid #eee; }
+        .chat-input input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div class="nav-bar">
-        <button class="btn-logout" onclick="logout()">Esci (Logout)</button>
+        <a href="index.html">← Torna alla Home</a>
+        <button onclick="logout()" style="background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">Disconnetti</button>
     </div>
 
     <div class="profile-card">
         <div class="profile-header">
-            <img id="display-foto" src="default-avatar.jpg" alt="Avatar" class="avatar">
+            <img id="display-foto" src="https://via.placeholder.com/160" alt="Avatar" class="avatar">
             <div class="header-info">
                 <h1 id="display-nome">Caricamento...</h1>
-                <p id="display-titolo" class="title">Sommelier Professionista</p>
-                <p id="display-localita" class="location">Località non inserita</p>
+                <p id="display-titolo" class="title">Sommelier & Wine Director</p>
+                <p id="display-localita" class="location">Milano, Italia</p>
                 <span class="badge">● Disponibile per consulenze</span>
-                <button class="btn-contatto" onclick="avviaChat()">Richiedi Contatto</button>
+                <button class="btn-contatto" onclick="toggleChat()">Messaggio Privato</button>
             </div>
         </div>
 
         <div class="profile-details">
-            <div class="detail-row">
-                <strong>Bio</strong>
-                <p id="display-bio">Nessuna biografia inserita.</p>
-            </div>
-            <div class="detail-row">
-                <strong>Specializzazioni</strong>
-                <div id="display-tags" class="tags">
-                    </div>
-            </div>
+            <div class="detail-label">Bio</div>
+            <div class="detail-content" id="display-bio">Nessuna biografia inserita.</div>
+
+            <div class="detail-label">Specializzazioni</div>
+            <div class="detail-content" id="display-tags">
+                </div>
+        </div>
+    </div>
+
+    <div id="chatBox" class="chat-overlay">
+        <div class="chat-header">
+            <span>Chat EnoHub</span>
+            <button onclick="toggleChat()" style="background:none; border:none; color:white; cursor:pointer;">X</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="msgInput" placeholder="Scrivi...">
+            <button onclick="sendMsg()" style="margin-left:5px;">></button>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Leggiamo i dati salvati nel browser (localStorage)
-            const userData = JSON.parse(localStorage.getItem('enohub_user'));
+        const socket = io();
+        const user = JSON.parse(localStorage.getItem('enohub_user'));
 
-            if (!userData) {
-                // Se non c'è il login, torna indietro
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!user) {
                 window.location.href = "auth/login.html";
                 return;
             }
 
-            // RIEMPIAMO I CAMPI CON I DATI REALI DELL'UTENTE
-            document.getElementById('display-nome').innerText = userData.nome || "Utente EnoHub";
-            document.getElementById('display-bio').innerText = userData.bio || "Bio non disponibile.";
+            // RIEMPIAMO I DATI DAL "RICORDO" DEL BROWSER
+            document.getElementById('display-nome').innerText = user.nome;
+            document.getElementById('display-bio').innerText = user.bio || "Sommelier esperto con passione per il territorio.";
+            if(user.foto) document.getElementById('display-foto').src = "/" + user.foto;
             
-            if (userData.foto) {
-                document.getElementById('display-foto').src = "/" + userData.foto;
-            }
-
-            // Gestione dei Tag
-            if (userData.specializzazioni) {
-                const tagsContainer = document.getElementById('display-tags');
-                const specs = userData.specializzazioni.split(',');
-                specs.forEach(s => {
+            // Creazione Tag
+            if(user.specializzazioni) {
+                const tagsDiv = document.getElementById('display-tags');
+                user.specializzazioni.split(',').forEach(tag => {
                     const span = document.createElement('span');
                     span.className = 'tag';
-                    span.innerText = s.trim();
-                    tagsContainer.appendChild(span);
+                    span.innerText = tag.trim();
+                    tagsDiv.appendChild(span);
                 });
             }
+
+            // Attivazione Chat
+            socket.emit('join', user.id);
+        });
+
+        function toggleChat() {
+            const chat = document.getElementById('chatBox');
+            chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function sendMsg() {
+            const input = document.getElementById('msgInput');
+            if(!input.value) return;
+
+            const msg = {
+                mittenteId: user.id,
+                nomeMittente: user.nome,
+                testo: input.value,
+                // Qui dovresti avere un destinatarioId reale, usiamo uno di test
+                destinatarioId: "id_di_prova" 
+            };
+
+            socket.emit('private_message', msg);
+            document.getElementById('chat-messages').innerHTML += `<div><b>Tu:</b> ${input.value}</div>`;
+            input.value = "";
+        }
+
+        socket.on('new_message', (data) => {
+            document.getElementById('chat-messages').innerHTML += `<div><b>${data.nomeMittente}:</b> ${data.testo}</div>`;
         });
 
         function logout() {
-            // Cancelliamo la memoria locale ma i dati restano nel server (users.json)
-            localStorage.removeItem('enohub_user');
-            localStorage.removeItem('enohub_token');
+            localStorage.clear();
             window.location.href = "auth/login.html";
-        }
-
-        function avviaChat() {
-            alert("Funzione chat in fase di attivazione...");
         }
     </script>
 </body>
