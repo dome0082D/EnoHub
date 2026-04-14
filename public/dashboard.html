@@ -2,63 +2,101 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - EnoHub</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <script src="scripts/api.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - Profilo Professionale</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .profile-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .profile-header { display: flex; align-items: center; padding: 40px; border-bottom: 1px solid #eee; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 30px; border: 3px solid #eee; }
+        .header-info h1 { margin: 0; color: #333; font-size: 28px; }
+        .title { color: #666; margin: 5px 0; font-size: 18px; }
+        .location { color: #888; font-size: 14px; margin-bottom: 15px; }
+        .badge { color: #1a7f37; font-weight: bold; font-size: 14px; display: block; margin-bottom: 15px; }
+        .btn-contatto { background-color: #800000; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .profile-details { padding: 40px; }
+        .detail-row { display: flex; margin-bottom: 25px; }
+        .detail-row strong { width: 150px; color: #800000; font-size: 16px; text-transform: uppercase; }
+        .detail-row p { margin: 0; flex: 1; color: #444; line-height: 1.6; }
+        .tags { display: flex; gap: 10px; flex-wrap: wrap; }
+        .tag { background: #f0f0f0; padding: 5px 15px; border-radius: 20px; font-size: 13px; color: #555; }
+        .nav-bar { max-width: 800px; margin: 0 auto 20px; display: flex; justify-content: flex-end; }
+        .btn-logout { background: none; border: none; color: #666; cursor: pointer; text-decoration: underline; }
+    </style>
 </head>
 <body>
-    <div class="auth__content">
-        <h2>Gestione Profilo</h2>
-        <form id="updateForm">
-            <div class="auth__form-group">
-                <label>Telefono:</label>
-                <input type="tel" id="u-tel" class="auth__input">
-            </div>
-            <div class="auth__form-group">
-                <label>Biografia:</label>
-                <textarea id="u-bio" class="auth__input" rows="5"></textarea>
-            </div>
-            <div class="auth__form-group">
-                <label>Specializzazioni (separate da virgola):</label>
-                <input type="text" id="u-spec" class="auth__input">
-            </div>
-            <button type="submit" class="auth__btn">SALVA MODIFICHE</button>
-        </form>
 
-        <hr style="margin: 30px 0;">
-        <button onclick="EnoHubApi.logout()" class="btn-logout" style="width:100%; padding:10px; background:#666; color:white; border:none; border-radius:8px; cursor:pointer;">ESCI (LOGOUT)</button>
-        <button onclick="EnoHubApi.deleteProfile()" class="btn-delete" style="width:100%; margin-top:10px; padding:10px; background:red; color:white; border:none; border-radius:8px; cursor:pointer;">ELIMINA ACCOUNT (GDPR)</button>
+    <div class="nav-bar">
+        <button class="btn-logout" onclick="logout()">Esci (Logout)</button>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <img id="display-foto" src="default-avatar.jpg" alt="Avatar" class="avatar">
+            <div class="header-info">
+                <h1 id="display-nome">Caricamento...</h1>
+                <p id="display-titolo" class="title">Sommelier Professionista</p>
+                <p id="display-localita" class="location">Località non inserita</p>
+                <span class="badge">● Disponibile per consulenze</span>
+                <button class="btn-contatto" onclick="avviaChat()">Richiedi Contatto</button>
+            </div>
+        </div>
+
+        <div class="profile-details">
+            <div class="detail-row">
+                <strong>Bio</strong>
+                <p id="display-bio">Nessuna biografia inserita.</p>
+            </div>
+            <div class="detail-row">
+                <strong>Specializzazioni</strong>
+                <div id="display-tags" class="tags">
+                    </div>
+            </div>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const user = JSON.parse(localStorage.getItem('enoUser'));
-            document.getElementById('u-tel').value = user.telefono || '';
-            document.getElementById('u-bio').value = user.bio || '';
-            document.getElementById('u-spec').value = user.specializzazione || '';
+            // Leggiamo i dati salvati nel browser (localStorage)
+            const userData = JSON.parse(localStorage.getItem('enohub_user'));
 
-            document.getElementById('updateForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const data = {
-                    telefono: document.getElementById('u-tel').value,
-                    bio: document.getElementById('u-bio').value,
-                    specializzazione: document.getElementById('u-spec').value
-                };
-                const res = await fetch('/api/utenti/update', {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}`
-                    },
-                    body: JSON.stringify(data)
+            if (!userData) {
+                // Se non c'è il login, torna indietro
+                window.location.href = "auth/login.html";
+                return;
+            }
+
+            // RIEMPIAMO I CAMPI CON I DATI REALI DELL'UTENTE
+            document.getElementById('display-nome').innerText = userData.nome || "Utente EnoHub";
+            document.getElementById('display-bio').innerText = userData.bio || "Bio non disponibile.";
+            
+            if (userData.foto) {
+                document.getElementById('display-foto').src = "/" + userData.foto;
+            }
+
+            // Gestione dei Tag
+            if (userData.specializzazioni) {
+                const tagsContainer = document.getElementById('display-tags');
+                const specs = userData.specializzazioni.split(',');
+                specs.forEach(s => {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    span.innerText = s.trim();
+                    tagsContainer.appendChild(span);
                 });
-                if(res.ok) {
-                    alert("Dati aggiornati!");
-                    const updated = await res.json();
-                    localStorage.setItem('enoUser', JSON.stringify(updated.user));
-                }
-            };
+            }
         });
+
+        function logout() {
+            // Cancelliamo la memoria locale ma i dati restano nel server (users.json)
+            localStorage.removeItem('enohub_user');
+            localStorage.removeItem('enohub_token');
+            window.location.href = "auth/login.html";
+        }
+
+        function avviaChat() {
+            alert("Funzione chat in fase di attivazione...");
+        }
     </script>
 </body>
 </html>
