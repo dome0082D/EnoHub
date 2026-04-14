@@ -1,11 +1,26 @@
-async function login() {
-    const res = await fetch('/api/login', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: email.value, password: password.value })
-    });
-    const data = await res.json();
-    if(data.success) { 
-        localStorage.setItem('enohub_user', JSON.stringify(data.user)); 
-        location.href="../dashboard.html"; 
-    } else alert("Dati errati!");
-}
+<script>
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await res.json();
+
+            if (result.success && result.user) {
+                // Salviamo i dati reali nel browser
+                localStorage.setItem('enohub_user', JSON.stringify(result.user));
+                window.location.href = "../dashboard.html";
+            } else {
+                alert("Email o password errati.");
+            }
+        } catch (err) {
+            alert("Errore di connessione. Controlla i log di Render!");
+        }
+    }
+</script>
