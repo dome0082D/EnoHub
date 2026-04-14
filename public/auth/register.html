@@ -1,6 +1,29 @@
-async function register() {
-    const data = { nome: nome.value, email: email.value, password: password.value, tipo: tipo.value };
-    const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-    if((await res.json()).success) { alert("Account Creato!"); window.location.href="login.html"; }
-    else alert("Errore: email già esistente.");
-}
+<script>
+    async function register() {
+        const nome = document.getElementById('nome').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const tipo = document.getElementById('tipo').value;
+
+        if(!nome || !email || !password) return alert("Riempi tutti i campi!");
+
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, password, tipo })
+            });
+            
+            const result = await res.json();
+            
+            if (result.success) {
+                alert("Account creato con successo! Ora accedi.");
+                window.location.href = "login.html";
+            } else {
+                alert("Errore: " + (result.error || "Impossibile registrarsi."));
+            }
+        } catch (err) {
+            alert("Il server non risponde. Assicurati che Render sia attivo!");
+        }
+    }
+</script>
