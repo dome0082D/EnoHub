@@ -12,45 +12,41 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Configurazione MongoDB - INSERISCI QUI IL TUO LINK DI ATLAS
-const MONGO_URI = process.env.MONGO_URI || 'TUO_LINK_MONGODB_ATLAS';
+// --- CONNESSIONE MONGODB ---
+const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_MONGODB_ATLAS';
+mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Connesso')).catch(err => console.error(err));
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ MongoDB Connesso'))
-    .catch(err => console.error('❌ Errore DB:', err));
-
-// --- SCHEMI ---
+// --- MODELLI DATI ---
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String, required: true },
-    tipo: String, bio: String, specializzazioni: String, foto: String
+    tipo: String, bio: { type: String, default: "" }, specializzazioni: { type: String, default: "" }
 }));
 
 const Message = mongoose.model('Message', new mongoose.Schema({
-    from: String, to: String, fromName: String, text: String, time: { type: Date, default: Date.now }
+    from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now }
 }));
 
 const Media = mongoose.model('Media', new mongoose.Schema({
     ownerId: String, url: String, name: String, type: String, date: { type: Date, default: Date.now }
 }));
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(cors()); app.use(express.json()); app.use(express.static('public'));
 fs.ensureDirSync('public/uploads/media');
 
-const upload = multer({ storage: multer.diskStorage({
+// Configurazione Upload con Multer
+const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/uploads/media'),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-})});
+});
+const upload = multer({ storage });
 
-// --- API REGISTRAZIONE ---
+// --- API AUTH ---
 app.post('/api/register', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const newUser = new User({ ...req.body, password: hashedPassword });
-        await newUser.save();
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: "Email già esistente" }); }
+        await newUser.save(); res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: "Errore o Email già esistente" }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -60,33 +56,33 @@ app.post('/api/login', async (req, res) => {
     } else res.status(401).json({ success: false });
 });
 
-// --- GESTIONE IMPOSTAZIONI ---
 app.put('/api/user/:id', async (req, res) => {
-    await User.findByIdAndUpdate(req.params.id, req.body);
-    const updated = await User.findById(req.params.id);
+    const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, user: updated });
 });
 
-// --- API MEDIA ---
+app.get('/api/users', async (req, res) => res.json(await User.find({}, 'nome tipo bio')));
+
+// --- API MEDIA & CARICAMENTO ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    const newMedia = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/' + req.file.filename, name: req.file.originalname, type: req.file.mimetype });
-    await newMedia.save();
-    res.json(newMedia);
+    const newMedia = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
+    await newMedia.save(); res.json(newMedia);
 });
 
 app.get('/api/media', async (req, res) => res.json(await Media.find()));
+
 app.delete('/api/media/:id', async (req, res) => {
     const item = await Media.findById(req.params.id);
     if(item) { fs.removeSync(path.join(__dirname, 'public', item.url)); await Media.findByIdAndDelete(req.params.id); }
     res.json({ success: true });
 });
 
-// --- CHAT + STORICO ---
+// --- CHAT CON ARCHIVIO 2 MESI ---
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
     socket.on('get_history', async ({ me, to }) => {
-        const twoMonths = new Date(); twoMonths.setMonth(twoMonths.getMonth() - 2);
-        const history = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:twoMonths} }).sort({time:1});
+        const twoMonthsAgo = new Date(); twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+        const history = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:twoMonthsAgo} }).sort({time:1});
         socket.emit('chat_history', history);
     });
     socket.on('send_msg', async (data) => {
@@ -95,4 +91,5 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(process.env.PORT || 3000, () => console.log('EnoHub Enterprise Running'));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`EnoHub Enterprise Running on ${PORT}`));
