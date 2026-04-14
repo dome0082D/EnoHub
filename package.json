@@ -1,9 +1,11 @@
 {
-  "name": "enohub-enterprise-final",
-  "version": "3.0.0",
-  "description": "EnoHub Platform con MongoDB e Chat Real-time",
+  "name": "enohub-enterprise",
+  "version": "3.1.0",
+  "description": "EnoHub Platform",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
