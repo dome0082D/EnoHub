@@ -13,15 +13,18 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 // --- CONNESSIONE DATABASE ---
-const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS_QUI';
-mongoose.connect(MONGO_URI).then(() => console.log('✅ DATABASE CONNESSO')).catch(e => console.log('❌ ERRORE DB:', e.message));
+const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS';
+mongoose.connect(MONGO_URI).then(() => console.log('✅ DB CONNESSO')).catch(e => console.log('❌ ERR DB:', e.message));
 
-// --- MODELLI (Aggiornati per il nuovo Profilo) ---
+// --- SCHEMA UTENTE COMPLETO ---
 const User = mongoose.model('User', new mongoose.Schema({
-    nome: String, email: { type: String, unique: true }, password: { type: String },
-    tipo: String, location: { type: String, default: "Italia" }, 
-    bio: { type: String, default: "Descrizione non inserita." },
-    specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" }
+    nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
+    // Campi Sommelier
+    location: { type: String, default: "Italia" }, bio: { type: String, default: "" },
+    specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" },
+    // Campi Cantina
+    regione: { type: String, default: "" }, filosofia: { type: String, default: "" },
+    sito: { type: String, default: "" }, storia: { type: String, default: "" }
 }));
 
 const Message = mongoose.model('Message', new mongoose.Schema({
@@ -40,13 +43,13 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 })});
 
-// --- API AUTH ---
+// --- API ---
 app.post('/api/register', async (req, res) => {
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const newUser = new User({ ...req.body, password: hashedPassword });
+        const hashed = await bcrypt.hash(req.body.password, 10);
+        const newUser = new User({ ...req.body, password: hashed });
         await newUser.save(); res.json({ success: true });
-    } catch (e) { res.status(500).json({ success: false, error: "Email già registrata" }); }
+    } catch (e) { res.status(500).json({ success: false, error: "Email già in uso." }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -62,11 +65,11 @@ app.put('/api/user/:id', async (req, res) => {
 
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 
-// --- API MEDIA E ALLEGATI ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    const media = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
-    await media.save(); res.json(media);
+    const m = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
+    await m.save(); res.json(m);
 });
+
 app.get('/api/media', async (req, res) => res.json(await Media.find()));
 app.delete('/api/media/:id', async (req, res) => {
     const item = await Media.findById(req.params.id);
@@ -74,13 +77,13 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// --- CHAT CON ARCHIVIO (2 MESI) ---
+// --- CHAT 2 MESI ---
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
     socket.on('get_history', async ({ me, to }) => {
         const limit = new Date(); limit.setMonth(limit.getMonth() - 2);
-        const history = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:limit} }).sort({time:1});
-        socket.emit('chat_history', history);
+        const msgs = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:limit} }).sort({time:1});
+        socket.emit('chat_history', msgs);
     });
     socket.on('send_msg', async (d) => {
         const m = new Message(d); await m.save(); io.to(d.to).emit('new_msg', m);
