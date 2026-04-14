@@ -1,41 +1,6 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrati - EnoHub</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin:0; }
-        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2 style="color:#800000">Crea Profilo EnoHub</h2>
-        <input type="text" id="nome" placeholder="Nome Completo / Cantina">
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        <select id="tipo"><option value="Sommelier">Sommelier</option><option value="Cantina">Cantina</option></select>
-        <button class="btn" onclick="register()">REGISTRATI</button>
-        <p><a href="../index.html" style="color:#666; font-size:14px; text-decoration:none;">← Torna alla Home</a></p>
-    </div>
-    <script>
-        async function register() {
-            const data = {
-                nome: document.getElementById('nome').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                tipo: document.getElementById('tipo').value
-            };
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if((await res.json()).success) { alert("Registrazione completata!"); window.location.href="login.html"; }
-            else { alert("Errore: Email già presente."); }
-        }
-    </script>
-</body>
-</html>
+async function register() {
+    const data = { nome: nome.value, email: email.value, password: password.value, tipo: tipo.value };
+    const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if((await res.json()).success) { alert("Account Creato!"); window.location.href="login.html"; }
+    else alert("Errore: email già esistente.");
+}
