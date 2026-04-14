@@ -41,8 +41,13 @@
                 const result = await EnoHubApi.login(email, password);
                 
                 if (result.success) {
-                    alert("Accesso eseguito! Benvenuto.");
-                    window.location.href = "../index.html"; // Ti porta alla Home
+                     localStorage.setItem('enohub_token', result.token);
+    localStorage.setItem('enohub_user', JSON.stringify(result.user));
+    
+    alert("Accesso eseguito! Benvenuto su EnoHub.");
+    
+    // Cambia il percorso per mandare l'utente alla dashboard
+    window.location.href = "../dashboard.html"; 
                 } else {
                     alert("Errore: " + (result.error || "Credenziali non valide"));
                     btn.innerText = "ACCEDI";
