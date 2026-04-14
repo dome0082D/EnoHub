@@ -5,36 +5,44 @@
     <title>EnoHub - Login</title>
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin: 0; }
-        .login-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 340px; text-align: center; }
+        .login-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 320px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; border-radius: 5px; }
-        button:hover { background: #600000; }
+        button { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="login-card">
         <h2 style="color:#800000;">Accedi a EnoHub</h2>
-        <input type="email" id="email" placeholder="Inserisci la tua Email">
-        <input type="password" id="password" placeholder="Inserisci la Password">
-        <button onclick="doLogin()">ENTRA NEL PROFILO</button>
-        <p style="margin-top:20px; font-size:13px;"><a href="../index.html" style="color:#666; text-decoration:none;">← Torna alla Home</a></p>
+        <input type="email" id="email" placeholder="Email Registrata">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="doLogin()">ENTRA</button>
+        <p style="margin-top:20px; font-size:14px;"><a href="../index.html" style="color:#555; text-decoration:none;">Torna alla Home</a></p>
     </div>
+
     <script>
         async function doLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if (data.success) {
-                // Salvataggio per la persistenza
-                localStorage.setItem('enohub_user', JSON.stringify(data.user));
-                localStorage.setItem('enohub_token', data.token);
-                window.location.href = "../dashboard.html";
-            } else { alert("Errore: Credenziali errate o account inesistente."); }
+            
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // ATTIVAZIONE PERSISTENZA LOCALSTORAGE
+                    localStorage.setItem('enohub_user', JSON.stringify(data.user));
+                    localStorage.setItem('enohub_token', data.token);
+                    window.location.href = "../dashboard.html";
+                } else { 
+                    alert("Errore: Credenziali errate."); 
+                }
+            } catch (err) {
+                alert("Errore di connessione al server.");
+            }
         }
     </script>
 </body>
