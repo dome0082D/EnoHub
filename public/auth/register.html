@@ -1,72 +1,41 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <title>EnoHub - Registrazione</title>
-    <link rel="stylesheet" href="../styles/main.css">
-    <script src="../scripts/api.js"></script>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrati - EnoHub</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin:0; }
+        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: #800000; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
+    </style>
 </head>
-<body class="auth-page">
-    <div class="auth__content" style="max-width: 500px; margin: 50px auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <h2 style="color: var(--wine-red); text-align: center; margin-bottom: 20px;">Crea il tuo Profilo</h2>
-        
-        <form id="registerForm">
-            <div style="margin-bottom: 15px;">
-                <select id="tipo" class="auth__input" style="width: 100%; padding: 10px;" required>
-                    <option value="" disabled selected>Seleziona Tipo Profilo...</option>
-                    <option value="sommelier">Sommelier / Professionista</option>
-                    <option value="cantina">Cantina / Azienda Agricola</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 15px;"><input type="text" id="nome" class="auth__input" placeholder="Nome (o Nome Cantina)" style="width: 100%; padding: 10px;" required></div>
-            <div style="margin-bottom: 15px;"><input type="text" id="cognome" class="auth__input" placeholder="Cognome (lascia vuoto se Cantina)" style="width: 100%; padding: 10px;"></div>
-            <div style="margin-bottom: 15px;"><input type="email" id="email" class="auth__input" placeholder="Email" style="width: 100%; padding: 10px;" required></div>
-            <div style="margin-bottom: 15px;"><input type="password" id="password" class="auth__input" placeholder="Password" style="width: 100%; padding: 10px;" required></div>
-            <div style="margin-bottom: 15px;"><input type="text" id="citta" class="auth__input" placeholder="Città / Regione" style="width: 100%; padding: 10px;" required></div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 0.9rem; color: #666;">Foto Profilo / Logo:</label>
-                <input type="file" id="foto" accept="image/*" style="width: 100%;">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <input type="checkbox" id="privacy" required>
-                <label for="privacy" style="font-size: 0.8rem; color: #666;">Accetto i Termini di Servizio e l'informativa sulla Privacy (GDPR).</label>
-            </div>
-            
-            <button type="submit" class="btn-red" style="width: 100%; padding: 12px; font-weight: bold;">REGISTRATI</button>
-        </form>
+<body>
+    <div class="card">
+        <h2 style="color:#800000">Crea Profilo EnoHub</h2>
+        <input type="text" id="nome" placeholder="Nome Completo / Cantina">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <select id="tipo"><option value="Sommelier">Sommelier</option><option value="Cantina">Cantina</option></select>
+        <button class="btn" onclick="register()">REGISTRATI</button>
+        <p><a href="../index.html" style="color:#666; font-size:14px; text-decoration:none;">← Torna alla Home</a></p>
     </div>
-
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = "CARICAMENTO...";
-            
-            const fd = new FormData();
-            fd.append('tipo', document.getElementById('tipo').value);
-            fd.append('nome', document.getElementById('nome').value);
-            fd.append('cognome', document.getElementById('cognome').value);
-            fd.append('email', document.getElementById('email').value);
-            fd.append('password', document.getElementById('password').value);
-            fd.append('citta', document.getElementById('citta').value);
-            
-            if(document.getElementById('foto').files[0]) {
-                fd.append('foto', document.getElementById('foto').files[0]);
-            }
-
-            const res = await fetch('/api/register', { method: 'POST', body: fd });
-            const data = await res.json();
-            
-            if(data.success) {
-                alert("Registrazione completata! Ora puoi fare il login.");
-                window.location.href = "login.html";
-            } else {
-                alert("Errore: " + data.error);
-                btn.innerText = "REGISTRATI";
-            }
-        });
+        async function register() {
+            const data = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                tipo: document.getElementById('tipo').value
+            };
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if((await res.json()).success) { alert("Registrazione completata!"); window.location.href="login.html"; }
+            else { alert("Errore: Email già presente."); }
+        }
     </script>
 </body>
 </html>
