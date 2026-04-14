@@ -1,6 +1,7 @@
 {
   "name": "enohub-enterprise",
-  "version": "4.0.0",
+  "version": "5.0.0",
+  "description": "EnoHub Enterprise - Definitive Edition",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
