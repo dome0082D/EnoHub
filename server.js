@@ -12,11 +12,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Connessione MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_DI_ATLAS_QUI';
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ MongoDB Connesso'))
-    .catch(err => console.error('❌ Errore DB:', err));
+// Protezione stringa MongoDB
+const MONGO_URI = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : null;
+
+if (MONGO_URI) {
+    mongoose.connect(MONGO_URI)
+        .then(() => console.log('✅ MongoDB Connesso Correttamente'))
+        .catch(err => console.error('❌ Errore critico connessione DB:', err));
+} else {
+    console.error('⚠️ ATTENZIONE: Variabile MONGO_URI non impostata su Render!');
+}
 
 // Schemi
 const User = mongoose.model('User', new mongoose.Schema({
@@ -42,14 +47,14 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 })});
 
-// --- API ---
+// API
 app.post('/api/register', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const newUser = new User({ ...req.body, password: hashedPassword });
         await newUser.save();
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ success: false, error: "Email già in uso" }); }
+    } catch (e) { res.status(500).json({ success: false, error: "Email esistente" }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -57,10 +62,8 @@ app.post('/api/login', async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (user && await bcrypt.compare(req.body.password, user.password)) {
             res.json({ success: true, user });
-        } else {
-            res.status(401).json({ success: false, error: "Credenziali errate" });
-        }
-    } catch (e) { res.status(500).json({ success: false, error: "Errore server" }); }
+        } else res.status(401).json({ success: false });
+    } catch (e) { res.status(500).json({ success: false }); }
 });
 
 app.get('/api/users', async (req, res) => res.json(await User.find({}, 'nome tipo bio')));
@@ -72,9 +75,19 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
 app.get('/api/media', async (req, res) => res.json(await Media.find()));
 
-// --- SOCKET ---
+app.delete('/api/media/:id', async (req, res) => {
+    const item = await Media.findById(req.params.id);
+    if(item) { fs.removeSync(path.join(__dirname, 'public', item.url)); await Media.findByIdAndDelete(req.params.id); }
+    res.json({ success: true });
+});
+
 io.on('connection', (socket) => {
     socket.on('join', (userId) => socket.join(userId));
+    socket.on('get_history', async ({ me, to }) => {
+        const limit = new Date(); limit.setMonth(limit.getMonth() - 2);
+        const msgs = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:limit} }).sort({time:1});
+        socket.emit('chat_history', msgs);
+    });
     socket.on('send_msg', async (data) => {
         const newMsg = new Message(data); await newMsg.save();
         io.to(data.to).emit('new_msg', newMsg);
